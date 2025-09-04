@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.13.0...3.20)
 project(MyRenderer LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
