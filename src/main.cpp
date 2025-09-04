@@ -7,7 +7,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 int main() {
-    glEnable(GL_DEPTH_TEST);
 
     if (!glfwInit()) return -1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -29,6 +28,7 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // TODO: global illumination rendering
+        glEnable(GL_DEPTH_TEST);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
