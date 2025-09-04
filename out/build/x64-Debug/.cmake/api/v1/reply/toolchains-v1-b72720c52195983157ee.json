@@ -5,10 +5,23 @@
 		{
 			"compiler" : 
 			{
-				"implicit" : {},
-				"path" : "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe"
+				"id" : "MSVC",
+				"implicit" : 
+				{
+					"includeDirectories" : [],
+					"linkDirectories" : [],
+					"linkFrameworkDirectories" : [],
+					"linkLibraries" : []
+				},
+				"path" : "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
+				"version" : "19.44.35214.0"
 			},
-			"language" : "C"
+			"language" : "C",
+			"sourceFileExtensions" : 
+			[
+				"c",
+				"m"
+			]
 		},
 		{
 			"compiler" : 
@@ -33,7 +46,6 @@
 				"cc",
 				"cpp",
 				"cxx",
-				"m",
 				"mm",
 				"mpp",
 				"CPP",

@@ -5,6 +5,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
+//dummy comment
 
 int main() {
     glEnable(GL_DEPTH_TEST);

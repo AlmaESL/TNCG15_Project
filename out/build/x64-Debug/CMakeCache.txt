@@ -384,6 +384,24 @@ MyRenderer_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 MyRenderer_SOURCE_DIR:STATIC=C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer
 
+//Value Computed by CMake
+OurRenderer_BINARY_DIR:STATIC=C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug
+
+//Value Computed by CMake
+OurRenderer_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+OurRenderer_SOURCE_DIR:STATIC=C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer
+
+//Value Computed by CMake
+TNCG15-Raytracer_BINARY_DIR:STATIC=C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug
+
+//Value Computed by CMake
+TNCG15-Raytracer_IS_TOP_LEVEL:STATIC=ON
+
+//Value Computed by CMake
+TNCG15-Raytracer_SOURCE_DIR:STATIC=C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer
+
 //Use MSVC runtime library DLL
 USE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=ON
 
@@ -527,7 +545,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=1
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //noop for ranlib
