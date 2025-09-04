@@ -995,7 +995,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "8"
+			"value" : "1"
 		},
 		{
 			"name" : "CMAKE_PLATFORM_INFO_INITIALIZED",
@@ -1923,6 +1923,78 @@
 		},
 		{
 			"name" : "MyRenderer_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer"
+		},
+		{
+			"name" : "OurRenderer_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug"
+		},
+		{
+			"name" : "OurRenderer_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "ON"
+		},
+		{
+			"name" : "OurRenderer_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer"
+		},
+		{
+			"name" : "TNCG15-Raytracer_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug"
+		},
+		{
+			"name" : "TNCG15-Raytracer_IS_TOP_LEVEL",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "ON"
+		},
+		{
+			"name" : "TNCG15-Raytracer_SOURCE_DIR",
 			"properties" : 
 			[
 				{
