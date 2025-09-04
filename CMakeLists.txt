@@ -12,12 +12,33 @@ $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall -Wextra>
 )
 endfunction()
 
-# Collect all source files in the 'src' and 'include' directories
-file(GLOB SOURCES "src/*.cpp")
-file(GLOB HEADERS "include/*.h")
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+include_directories(include/glm)
 
-add_executable(MyRenderer ${SOURCES} ${HEADERS})
+
+# Collect all source files in the 'src' and 'include' directories
+set(HEADER_FILES
+	"include/glad/glad.h"
+	"include/KHR/khrplatform.h"
+	"include/GLFW/glfw3.h"
+	"include/GLFW/glfw3native.h"
+)
+
+set(SOURCE_FILES
+	main.cpp
+	glad.c
+)
+
+link_directories(lib)
+
+add_executable(MyRenderer ${SOURCE_FILES} ${HEADER_FILES})
 # target_include_directories(Raytracing PUBLIC include ext/stb)
+target_link_libraries(MyRenderer 
+	glfw3.dll
+)
+
 
 enable_warnings(MyRenderer)
 
