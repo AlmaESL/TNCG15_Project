@@ -14,7 +14,6 @@
 		"commands" : 
 		[
 			"add_executable",
-			"target_link_libraries",
 			"target_compile_options",
 			"enable_warnings",
 			"target_include_directories"
@@ -31,31 +30,25 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 49,
-				"parent" : 0
-			},
-			{
-				"command" : 1,
-				"file" : 0,
-				"line" : 54,
-				"parent" : 0
-			},
-			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 50,
+				"line" : 19,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 34,
-				"parent" : 3
+				"line" : 22,
+				"parent" : 0
 			},
 			{
-				"command" : 4,
+				"command" : 1,
 				"file" : 0,
-				"line" : 52,
+				"line" : 9,
+				"parent" : 2
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 40,
 				"parent" : 0
 			}
 		]
@@ -66,38 +59,26 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17"
+					"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 -MDd"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"fragment" : "/W4"
 				},
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"fragment" : "/permissive-"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 5,
+					"backtrace" : 4,
 					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/ext/glm"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 4,
 					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug/_deps/glfw-src/include"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug/_deps/glad-build/include"
-				},
-				{
-					"backtrace" : 2,
-					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/out/build/x64-Debug/_deps/glm-src/glm/.."
 				}
 			],
 			"language" : "CXX",
@@ -115,39 +96,18 @@
 			]
 		}
 	],
-	"dependencies" : 
-	[
-		{
-			"backtrace" : 2,
-			"id" : "glfw::@fa9f4482d3a2b070f206"
-		},
-		{
-			"backtrace" : 2,
-			"id" : "glad::@f022c46af7fd79d63a94"
-		}
-	],
 	"id" : "MyRenderer::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1",
+				"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -MDd",
 				"role" : "flags"
 			},
 			{
 				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
 				"role" : "flags"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "_deps\\glfw-build\\src\\glfw3.lib",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 2,
-				"fragment" : "_deps\\glad-build\\glad.lib",
-				"role" : "libraries"
 			},
 			{
 				"fragment" : "kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
