@@ -33,7 +33,7 @@ FetchContent_MakeAvailable(glm)
 # Your executable
 add_executable(MyRenderer
     src/main.cpp
-)
+ "include/dummyHeader.h")
 
 target_include_directories(MyRenderer PRIVATE include)
 
