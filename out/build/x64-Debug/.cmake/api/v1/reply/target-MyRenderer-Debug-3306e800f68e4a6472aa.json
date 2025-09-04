@@ -15,6 +15,8 @@
 		[
 			"add_executable",
 			"target_link_libraries",
+			"target_compile_options",
+			"enable_warnings",
 			"target_include_directories"
 		],
 		"files" : 
@@ -29,19 +31,31 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 34,
+				"line" : 49,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 40,
+				"line" : 54,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 50,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 38,
+				"line" : 34,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 52,
 				"parent" : 0
 			}
 		]
@@ -53,13 +67,25 @@
 			[
 				{
 					"fragment" : "/DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "/W4"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "/permissive-"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 3,
-					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/include"
+					"backtrace" : 5,
+					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer/ext/glm"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/almal/Desktop/Termin9/TNCG15/Project/OurRenderer"
 				},
 				{
 					"backtrace" : 2,

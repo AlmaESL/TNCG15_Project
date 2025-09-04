@@ -30,12 +30,26 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-# Your executable
-add_executable(MyRenderer
-    src/main.cpp
- "include/dummyHeader.h")
+function(enable_warnings target)
+target_compile_options(${target} PUBLIC 
+$<$<CXX_COMPILER_ID:MSVC>:/W4 /permissive->
+$<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall -Wextra>
+)
+endfunction()
 
-target_include_directories(MyRenderer PRIVATE include)
+
+# Your executable
+#add_executable(MyRenderer
+ #   src/main.cpp
+ #"include/dummyHeader.h")
+
+ file(GLOB SOURCES "src/*.cpp")
+ file(GLOB HEADERS "include/*.h")
+
+ add_executable(MyRenderer ${SOURCES} ${HEADERS})
+ enable_warnings(MyRenderer)
+
+target_include_directories(MyRenderer PUBLIC ${PROJECT_SOURCE_DIR}/ext/glm ${PROJECT_SOURCE_DIR})
 
 target_link_libraries(MyRenderer
     PRIVATE

@@ -50,8 +50,8 @@ cmake_ninja_workdir = C$:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer
 build cmake_object_order_depends_target_MyRenderer: phony || cmake_object_order_depends_target_glad cmake_object_order_depends_target_glfw
 
 build CMakeFiles\MyRenderer.dir\src\main.cpp.obj: CXX_COMPILER__MyRenderer_unscanned_Debug C$:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\src\main.cpp || cmake_object_order_depends_target_MyRenderer
-  FLAGS = /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17
-  INCLUDES = -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\include -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glfw-src\include -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glad-build\include -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glm-src\glm\..
+  FLAGS = /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /permissive-
+  INCLUDES = -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\ext\glm -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glfw-src\include -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glad-build\include -IC:\Users\almal\Desktop\Termin9\TNCG15\Project\OurRenderer\out\build\x64-Debug\_deps\glm-src\glm\..
   OBJECT_DIR = CMakeFiles\MyRenderer.dir
   OBJECT_FILE_DIR = CMakeFiles\MyRenderer.dir\src
   TARGET_COMPILE_PDB = CMakeFiles\MyRenderer.dir\
