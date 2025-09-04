@@ -5,8 +5,8 @@
 413	1747	7786000453134857	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_joystick.c.obj	ad8cc1250fce3be0
 266	1424	7786000451676126	_deps/glfw-build/src/CMakeFiles/glfw.dir/init.c.obj	e500d29d3e9bbc60
 377	1546	7786000452777819	_deps/glfw-build/src/CMakeFiles/glfw.dir/window.c.obj	31bad500bbb0586a
-197	12508	7786000570043693	_deps/glad-build/include/glad/glad.h	915923db3717d44a
 401	1451	7786000453020439	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_init.c.obj	bf5ce3db8a1cd863
+197	12508	7786000570043693	_deps/glad-build/include/glad/glad.h	915923db3717d44a
 3188	4081	7786000480893197	_deps/glfw-build/examples/CMakeFiles/particles.dir/particles.c.obj	ab9d14d6a27321ca
 290	1507	7786000451926461	_deps/glfw-build/src/CMakeFiles/glfw.dir/input.c.obj	948c000b700a5aad
 9288	10868	7786000541882781	_deps/glfw-build/examples/splitview.exe	e6a4a894aec5f302
@@ -28,6 +28,7 @@
 1910	2863	7786000468119060	_deps/glfw-build/examples/CMakeFiles/boing.dir/__/deps/glad_gl.c.obj	14b493d23a34b9e0
 5360	5912	7786000502612588	_deps/glfw-build/tests/CMakeFiles/monitors.dir/__/deps/glad_gl.c.obj	9100dca9116167a1
 1425	2774	7786000463255319	_deps/glfw-build/src/CMakeFiles/glfw.dir/win32_window.c.obj	bd5ddacbba7b4cea
+592	759	7786791846625258	MyRenderer.exe	52fe19f180b7193e
 1478	2840	7786000463799155	_deps/glfw-build/src/CMakeFiles/glfw.dir/egl_context.c.obj	5299cd613c1d537a
 2551	3148	7786000474522660	_deps/glfw-build/examples/CMakeFiles/gears.dir/__/deps/glad_gl.c.obj	56881397acca5289
 2682	3188	7786000475832776	_deps/glfw-build/examples/CMakeFiles/heightmap.dir/heightmap.c.obj	73c4534acfb621a6
@@ -53,6 +54,7 @@
 3742	4376	7786000486420605	_deps/glfw-build/examples/CMakeFiles/simple.dir/simple.c.obj	7d5b5a2c27f37ac1
 3700	4396	7786000485998403	_deps/glfw-build/examples/CMakeFiles/sharing.dir/__/deps/glad_gl.c.obj	6c1e57a53ce112c1
 3481	4409	7786000483822762	_deps/glfw-build/examples/CMakeFiles/sharing.dir/glfw.rc.res	ec08fdd8cd8f1907
+79	592	7786791841492064	CMakeFiles/MyRenderer.dir/src/main.cpp.obj	8de24bff6a897a6a
 4040	4507	7786000489418892	_deps/glfw-build/examples/CMakeFiles/splitview.dir/splitview.c.obj	27ca75f888968cd7
 9790	11886	7786000546920754	_deps/glfw-build/examples/wave.exe	d411b5a44aee1e28
 3976	4558	7786000488777822	_deps/glfw-build/examples/CMakeFiles/simple.dir/__/deps/glad_gl.c.obj	edf4856eba1f10c3
@@ -132,7 +134,3 @@
 15995	17708	7786000608955540	_deps/glfw-build/tests/triangle-vulkan.exe	9108c00d5cef450b
 16091	17736	7786000609929443	_deps/glfw-build/tests/windows.exe	37462bb1912fa933
 16373	17970	7786000612740503	OurRenderer.exe	327a320a0e2e0ef9
-138	916	7786791475543669	CMakeFiles/MyRenderer.dir/src/main.cpp.obj	8de24bff6a897a6a
-918	1363	7786791483333543	MyRenderer.exe	52fe19f180b7193e
-79	592	7786791841492064	CMakeFiles/MyRenderer.dir/src/main.cpp.obj	8de24bff6a897a6a
-592	759	7786791846625258	MyRenderer.exe	52fe19f180b7193e
