@@ -1,7 +1,9 @@
 #include "include/glad/glad.h"
 #include "include/GLFW/glfw3.h"
+#include "include/computeNormals.h"
 #include "glm.hpp"
 #include <iostream>
+#include<vector>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -30,7 +32,13 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // TODO: global illumination rendering
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
+        std::vector<glm::vec3> triangle = { glm::vec3{1.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f} };
+        glm::vec3 normal = glm::vec3{ 0.0f, 0.0f, 0.0f };
+
+        normal = compNorm::computeFaceNormal(triangle[0], triangle[1], triangle[2]);
+
+        std::cout << "Normal: x = "<< normal.x << " y = " << normal.y << " z = " << normal.z << "\n";
 
         glfwSwapBuffers(window);
         glfwPollEvents();
