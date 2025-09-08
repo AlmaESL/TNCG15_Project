@@ -5,11 +5,11 @@
 
 /** 3D vectors and points */
 class Vec3 {
-
+public: 
 	float x, y, z;
 
 	// Constructor
-	Vec3(float xx, float yy, float zz) : x(xx), y(yy), z(zz) {}
+	//Vec3(float xx, float yy, float zz) : x(xx), y(yy), z(zz) {}
 
 	
 	Vec3 operator+ (const Vec3& b) const {
@@ -50,8 +50,9 @@ public:
 	Vec3 v0, v1, v2; 
 	Vec3 normal; 
 	Vec3 edge0, edge1; 
+	Vec3 color; 
 
-	Triangle(Vec3 vert0, Vec3 vert1, Vec3 vert2) : v0(vert0), v1(vert1), v2(vert2) {
+	Triangle(Vec3 vert0, Vec3 vert1, Vec3 vert2, Vec3 col) : v0(vert0), v1(vert1), v2(vert2), color(col) {
 		edge0 = v1 - v0; 
 		edge1 = v2 - v0; 
 		normal = computeNormal(v0, v1, v2); 
