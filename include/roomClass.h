@@ -1,67 +1,76 @@
 #pragma once
 
-#include "GLFW/glfw3.h"  // To use OpenGL datatypes
-#include "glm.hpp"
-#include <string>
-#include <vector>
+#include <iostream>
+#include <cmath>
 
-class Room {
+/** 3D vectors and points */
+class Vec3 {
 
+	float x, y, z;
+
+	// Constructor
+	Vec3(float xx, float yy, float zz) : x(xx), y(yy), z(zz) {}
+
+	
+	Vec3 operator+ (const Vec3& b) const {
+		return { x + b.x, y + b.y, z + b.z };
+	}
+
+	Vec3 operator- (const Vec3& b) const { 
+		return { x - b.x, y - b.y, z - b.z };
+	}
+
+	Vec3 operator* (float s) const {
+		return { x*s, y*s, z*s};
+	}
 };
 
-// Triangle healper class
+inline float dotProduct(const Vec3& a, const Vec3& b) { 
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+inline Vec3 crossProduct(const Vec3& a, const Vec3& b) {
+	return { a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x };
+}
+
+inline float getLength(const Vec3& v) {
+	return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+inline Vec3 normalize(const Vec3& v) {
+	float vLength = getLength(v);
+	return { v.x / vLength, v.y / vLength, v.z / vLength };
+}
+
+
+/** Triamngle class. The foundation for all meshes */
 class Triangle {
-public:
+public: 
+	// Triangle's vertices and its normal  
+	Vec3 v0, v1, v2; 
+	Vec3 normal; 
+	Vec3 edge0, edge1; 
 
-	Triangle(glm::vec3 vert1, glm::vec3 vert2, glm::vec3 vert3) {
-		v1 = vert1;
-		v2 = vert2;
-		v3 = vert3;
-
-		normal = computeNormal(v1, v2, v3);
+	Triangle(Vec3 vert0, Vec3 vert1, Vec3 vert2) : v0(vert0), v1(vert1), v2(vert2) {
+		edge0 = v1 - v0; 
+		edge1 = v2 - v0; 
+		normal = computeNormal(v0, v1, v2); 
 	}
 
 	void printNormal() const {
-		std::cout << "normal: " << normal.x << ", " << normal.y << ", " << normal.z << std::endl;
-	}
-
-	glm::vec3 v1;
-	glm::vec3 v2;
-	glm::vec3 v3;
-
-	glm::vec3 normal;
-	//glm::vec3 color;
-
-private:
-
-	glm::vec3 computeNormal(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2) {
-		glm::vec3 edge0 = v1 - v0;
-		glm::vec3 edge1 = v2 - v0;
-
-		glm::vec3 n = glm::cross(glm::normalize(edge0), glm::normalize(edge1));
-
-		// Return normal
-		return(n);
+		std::cout << "Triangle normal: " << normal.x << ", " << normal.y << ", " << normal.z << std::endl; 
 	}
 
 
-	/*glm::vec3 makeTriangleVertex(coordinatePoint v) {
-		glm::vec3 vertexPoint = glm::vec3(v.x, v.y, v.z);
-		return vertexPoint;
-	}*/
-};
+private: 
+	Vec3 computeNormal(const Vec3& v0, const Vec3& v1, const Vec3& v2) {
 
+		Vec3 edge0 = v1 - v0; 
+		Vec3 edge1 = v2 - v0; 
 
+		Vec3 n = crossProduct(normalize(edge0), normalize(edge1)); 
 
-//struct coordinatePoint {
-//public:
-//	coordinatePoint(float coordX, float coordY, float coordZ) {
-//		x = coordX;
-//		y = coordY;
-//		z = coordZ;
-//	}
-//
-//	float x;
-//	float y;
-//	float z;
-//};
+		return n; 
+	}
+
+}; 
