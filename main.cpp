@@ -152,9 +152,9 @@ std::vector<unsigned char> rayTracer(int width, int height) {
 
 			// Color the pixel based on the intersection test
 			if (t > 0.0f) {
-				pixel[0] = tri.color.x;
-				pixel[1] = tri.color.y;
-				pixel[2] = tri.color.z;
+				pixel[0] = static_cast<int>(tri.color.x);
+				pixel[1] = static_cast<int>(tri.color.y);
+				pixel[2] = static_cast<int>(tri.color.z);
 			}
 			else {
 				pixel[0] = pixel[1] = pixel[2] = 0; // black
