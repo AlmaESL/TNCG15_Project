@@ -7,9 +7,9 @@
  * This code is in the public domain.
  */
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#include <include/GLFW/glfw3.h>
 
-#include "Shader.hpp"
+#include "include/Shader.hpp"
 
 #include <iostream>
 #include <fstream>

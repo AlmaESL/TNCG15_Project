@@ -32,9 +32,8 @@ int main() {
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    /* Load shaders from vertex.glsl and fragment.glsl
-        triangleShader.createShader("shaders/vertex.glsl", "shaders/fragment.glsl");
-    */
+    /* Load shaders from vertex.glsl and fragment.glsl     */
+    triangleShader.createShader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

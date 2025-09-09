@@ -38,12 +38,25 @@ link_directories(lib)
 
 add_executable(MyRenderer ${SOURCE_FILES} ${HEADER_FILES})
 # target_include_directories(Raytracing PUBLIC include ext/stb)
-target_link_libraries(MyRenderer 
-	glfw3.dll
-)
-
 
 enable_warnings(MyRenderer)
+
+option(MyRenderer_USE_EXTERNAL_GLEW "GLEW is provided externaly" OFF)
+# Set CMake to prefere Vendor gl libraries rather than legacy, fixes warning on some unix systems
+if(NOT MyRenderer_USE_EXTERNAL_GLEW)
+	set(OpenGL_GL_PREFERENCE GLVND) 
+	add_subdirectory("include/glew")
+	target_link_libraries(MyRenderer PUBLIC 
+		GLEW
+		glfw3.dll
+	)
+else()
+	find_package(GLEW REQUIRED)
+	target_link_libraries(MyRenderer PUBLIC 
+		GLEW::GLEW
+		glfw3.dll
+	)
+endif()
 
 # Add the include directory for headers
 # include_directories(${PROJECT_SOURCE_DIR}/include)
