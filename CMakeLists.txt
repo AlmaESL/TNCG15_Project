@@ -25,11 +25,13 @@ set(HEADER_FILES
 	"include/GLFW/glfw3.h"
 	"include/GLFW/glfw3native.h"
 	"include/computeNormals.h"
+	"include/Shader.hpp"
 )
 
 set(SOURCE_FILES
 	main.cpp
 	glad.c
+	Shader.cpp
 )
 
 link_directories(lib)

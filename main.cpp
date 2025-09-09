@@ -1,6 +1,7 @@
 #include "include/glad/glad.h"
 #include "include/GLFW/glfw3.h"
 #include "include/computeNormals.h"
+#include "include/Shader.hpp"
 #include "glm.hpp"
 #include <iostream>
 #include<vector>
@@ -11,6 +12,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 //dummy comment
 
 int main() {
+
+    // Initalize shader
+    Shader triangleShader;
 
     if (!glfwInit()) return -1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -27,6 +31,10 @@ int main() {
     }
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    /* Load shaders from vertex.glsl and fragment.glsl
+        triangleShader.createShader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    */
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
