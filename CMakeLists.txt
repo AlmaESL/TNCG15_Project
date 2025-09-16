@@ -26,7 +26,9 @@ set(HEADER_FILES
 	"include/GLFW/glfw3native.h"
 	"include/computeNormals.h"
 	"include/roomClass.h"
-
+	"include/camera.h"
+	"include/ray.h"
+	"include/renderer.h"
 )
 
 set(SOURCE_FILES
