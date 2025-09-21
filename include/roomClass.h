@@ -5,67 +5,8 @@
 #include <vector>
 #include <fstream>
 
-/*
-* Util data structures for rays and triangles and vectors
-*/
-
-/// Utility data structure to define 3D points and effectively 3D vectors
-struct Vec3 {
-
-	double x, y, z;
-
-	// Constructor 
-	Vec3(double xx = 0, double yy = 0, double zz = 0) : x(xx), y(yy), z(zz) {}
-
-	// Computational operators
-	Vec3 operator+ (const Vec3& v) const {
-		return Vec3(x + v.x, y + v.y, z + v.z);
-	}
-
-	Vec3 operator- (const Vec3& v) const {
-		return Vec3(x - v.x, y - v.y, z - v.z);
-	}
-
-	// Overloaded multiplication - vector and scalar 
-	Vec3 operator* (double d) const {
-		return Vec3(x * d, y * d, z * d);
-	}
-
-	// Overloaded multiplication - vector with vector
-	Vec3 operator* (const Vec3& v)  const {
-		return Vec3(x * v.x, y * v.y, z * v.z);
-	}
-
-	// Division operator (only for normalization)
-	Vec3 operator/ (double d) const {
-		return Vec3(x / d, y / d, z / d);
-	}
-
-	double dotProduct(const Vec3& v) const {
-		return x * v.x + y * v.y + z * v.z;
-	}
-
-	Vec3 crossProduct(const Vec3& v) const {
-		return Vec3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
-	}
-
-	double getLength() const {
-		return std::sqrt(x * x + y * y + z * z);
-	}
-
-	Vec3 normalize() const {
-		double len = getLength();
-		return len > 0 ? (*this) / len : *this;
-	}
-};
-
-
-/// Utility structure for rays 
-class Ray {
-	public: 
-	Vec3 origin, direction;
-	Ray(const Vec3& o, const Vec3 dir) : origin(o), direction(dir) {}
-};
+#include "include/vec3.h"
+#include "include/ray.h"
 
 
 /*
@@ -120,7 +61,20 @@ public:
 private:
 	// Compute normalized triangle normal 
 	Vec3 computeTriangeNormal() const {
-		return edge0.crossProduct(edge1).normalize();
+		Vec3 n = edge0.crossProduct(edge1).normalize();
+
+		// Ensure normals point inwards to the room 
+		Vec3 roomCenter(2.0, 2.0, 2.0); 
+		Vec3 triangleCentroid = (v0 + v1 + v2) / 3.0; 
+
+		Vec3 dirToCenter = (roomCenter - triangleCentroid).normalize(); 
+
+		// Flip normal if it points outwards 
+		if (n.dotProduct(dirToCenter) < 0.0) {
+			n = n * -1.0; 
+		}
+
+		return n;
 	}
 
 	// Print triangle vertices and normal --> debug 
@@ -159,6 +113,9 @@ public:
 				tClosest = t;
 				outColor = tri.color;
 				outNormal = tri.normal;
+				if (outNormal.dotProduct(ray.direction) > 0.0) {
+					outNormal = outNormal * -1.0; // flip so it faces the incoming ray
+				}
 			}
 		}
 
@@ -171,16 +128,60 @@ public:
 
 };
 
+class Sphere {
+public: 
+	Vec3 centerPoint; 
+	double radius; 
+	Vec3 color; 
+
+	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
+
+	// Ray intersection test for spheres 
+	bool RaySphereIntersection(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
+
+		// Compute the vector distance from sphere center to ray
+		Vec3 L = centerPoint - ray.origin; 
+
+		double t_ca = L.dotProduct(ray.direction); 
+		double d2 = L.dotProduct(L) - t_ca * t_ca; 
+
+		if (d2 > std::pow(radius, 2)) {
+			return false; 
+		}
+
+		double t_hc = std::sqrt(std::pow(radius, 2) - d2); 
+		double t0 = t_ca - t_hc; 
+		double t1 = t_ca + t_hc; 
+
+		if (t1 < 0) {
+			return false; 
+		}
+
+		tHit = (t0 > 0) ? t0 : t1; 
+
+		Vec3 hitPoint = ray.origin + ray.direction * tHit; 
+		outNormal = (hitPoint - centerPoint).normalize();
+		outColor = color; 
+
+		return true; 
+
+	}
+
+}; 
+
 
 /// Class to make the scene room, that ie a cube 
 class Scene {
 
 public:
 	std::vector<std::shared_ptr<Object>> objs;
-	Vec3 lightPos = Vec3(4, 2, 10);
+	std::vector<std::shared_ptr<Sphere>> spheres;
+
+	/*Vec3 lightPos = Vec3(4, 2, 10);*/
+	Vec3 lightPos = Vec3(2, 2, 3);
 	Vec3 lightColor = Vec3(1, 1, 1);
-	double lightIntensity = 500.0;
-	Vec3 backgroundColor = Vec3(0.4, 0.4, 0.4);
+	double lightIntensity = 300.0;
+	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
 	// Constructor adds the room cube and a camera
 	Scene() {
@@ -194,6 +195,7 @@ public:
 		Vec3 v6(4, 4, 4);
 		Vec3 v7(0, 4, 4);
 		
+		// Floor - White
 		auto floor = std::make_shared<Object>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
@@ -207,8 +209,8 @@ public:
 
 		// Back wall - green
 		auto rightWall = std::make_shared<Object>();
-		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(1, 0, 0)));
-		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(1, 0, 0)));
+		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
+		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
 		addObject(rightWall);
 
 		// Left wall - blue
@@ -225,13 +227,24 @@ public:
 
 		// Ceiling - white
 		auto ceiling = std::make_shared<Object>();
-		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.9, 0.9)));
-		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.9, 0.9)));
+		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.8, 0.8, 0.8)));
+		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
 		addObject(ceiling);
+
+		// Add a sphere to the scene
+		Vec3 sphereCenterPoint(2.0, 2.0, 2.0);
+		Vec3 sphereColor(0.9, 0.9, 0.9); 
+		double sphereRadius = 0.4; 
+		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
+		addSphere(sphere);
 	}
 
 	void addObject(const std::shared_ptr<Object>& obj) {
 		objs.push_back(obj);
+	}
+
+	void addSphere(const std::shared_ptr<Sphere>& s) {
+		spheres.push_back(s); 
 	}
 
 	bool trace(const Ray& ray, Vec3& hitColor) const {
@@ -240,6 +253,7 @@ public:
 
 		bool hit = false;
 
+		// Check intersection for all triangle-based objects
 		for (const auto& obj : objs) {
 			double t; Vec3 n, c;
 			if (obj->intersect(ray, t, n, c) && t < tClosest) {
@@ -247,6 +261,18 @@ public:
 				bestNormal = n;
 				bestColor = c;
 				hit = true;
+			}
+		}
+
+		// Check intersection for all spheres 
+		for (const auto& sphere : spheres) {
+			double t; Vec3 n, c;
+
+			if (sphere->RaySphereIntersection(ray, t, n, c) && t < tClosest) {
+				tClosest = t; 
+				bestNormal = n; 
+				bestColor = c; 
+				hit = true; 
 			}
 		}
 
@@ -266,6 +292,10 @@ public:
 
 			Vec3 lightVec = lightPos - hitPoint;
 			Vec3 lightDir = lightVec.normalize();
+
+			if (bestNormal.dotProduct(lightDir) < 0.0) {
+				bestNormal = bestNormal * -1.0;
+			}
 
 			double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
 			double distance2 = lightVec.dotProduct(lightVec);

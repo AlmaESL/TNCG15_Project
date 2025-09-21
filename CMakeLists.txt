@@ -29,6 +29,7 @@ set(HEADER_FILES
 	"include/camera.h"
 	"include/ray.h"
 	"include/renderer.h"
+	"include/vec3.h"
 )
 
 set(SOURCE_FILES
