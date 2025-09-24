@@ -137,19 +137,19 @@ public:
 	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
 
 	// Ray intersection test for spheres 
-	bool RaySphereIntersection(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
+	bool RaySphereIntersection(const Ray& ray) const {
 
 		// Compute the vector distance from sphere center to ray
 		Vec3 L = centerPoint - ray.origin; 
 
 		double t_ca = L.dotProduct(ray.direction); 
-		double d2 = L.dotProduct(L) - t_ca * t_ca; 
+		double d2 = L.dotProduct(L) - pow(t_ca, 2); 
 
 		if (d2 > std::pow(radius, 2)) {
 			return false; 
 		}
 
-		double t_hc = std::sqrt(std::pow(radius, 2) - d2); 
+		double t_hc = sqrt(pow(radius, 2) - d2); 
 		double t0 = t_ca - t_hc; 
 		double t1 = t_ca + t_hc; 
 
@@ -157,14 +157,13 @@ public:
 			return false; 
 		}
 
-		tHit = (t0 > 0) ? t0 : t1; 
+		if (t0 > 0) {
+			return t0; 
 
-		Vec3 hitPoint = ray.origin + ray.direction * tHit; 
-		outNormal = (hitPoint - centerPoint).normalize();
-		outColor = color; 
-
-		return true; 
-
+		}
+		else {
+			return t1; 
+		}
 	}
 
 }; 
@@ -249,7 +248,7 @@ public:
 
 	bool trace(const Ray& ray, Vec3& hitColor) const {
 		double tClosest = std::numeric_limits<double>::infinity();
-		Vec3 normal, color, bestNormal, bestColor;
+		Vec3 normal, color, bestNormal, bestColor, hitPoint;
 
 		bool hit = false;
 
@@ -266,13 +265,13 @@ public:
 
 		// Check intersection for all spheres 
 		for (const auto& sphere : spheres) {
-			double t; Vec3 n, c;
 
-			if (sphere->RaySphereIntersection(ray, t, n, c) && t < tClosest) {
-				tClosest = t; 
-				bestNormal = n; 
-				bestColor = c; 
-				hit = true; 
+			double tsphere = sphere->RaySphereIntersection(ray); 
+			if (tsphere && tsphere < tClosest) {
+				tClosest = tsphere; 
+				hitPoint = sphere->centerPoint + ray.direction * tsphere; 
+				bestNormal = (hitPoint - sphere->centerPoint).normalize(); 
+				bestColor = sphere->color; 
 			}
 		}
 
