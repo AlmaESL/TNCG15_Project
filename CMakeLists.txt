@@ -30,6 +30,10 @@ set(HEADER_FILES
 	"include/ray.h"
 	"include/renderer.h"
 	"include/vec3.h"
+	"include/tracer.h"
+	"include/stocasticRayGeneration.h"
+	"include/objectDrawer.h"
+	"include/triangle.h"
 )
 
 set(SOURCE_FILES

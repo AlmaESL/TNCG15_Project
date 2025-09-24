@@ -5,8 +5,8 @@
 #include "include/renderer.h"
 
 int main() {
-	int WIDTH = 200;
-	int HEIGHT = 200; 
+	int WIDTH = 1024;
+	int HEIGHT = 1024; 
 
 
 	Camera cam; 

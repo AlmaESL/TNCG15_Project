@@ -7,175 +7,20 @@
 
 #include "include/vec3.h"
 #include "include/ray.h"
+#include "objectDrawer.h"
 
 
 /*
 * Classes for scene geometry, such as  triangles, objects and cube for the room itself
 */
 
-/// Triangle class, the basis for all scene geoemtry 
-class Triangle {
-public:
-	Vec3 v0, v1, v2;
-	Vec3 color;
-	Vec3 edge0, edge1;
-	Vec3 normal;
-
-	// Constructor 
-	Triangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& col) : v0(a), v1(b), v2(c), color(col) {
-		edge0 = v1 - v0;
-		edge1 = v2 - v0;
-		normal = computeTriangeNormal();
-	}
-
-	/// Moller-Trumbore ray-triangle intersection algorithm --> object class uses this function, hence static
-	static double RayTriangleIntersect(const Vec3& rayOrigin, const Vec3& rayDir, const Triangle& tri) {
-		const double EPSILON = 1e-8;
-
-		// Check if triangle normal and ray direction are anti-parallel
-		double dotTest = tri.normal.dotProduct(rayDir);
-		if (dotTest > -EPSILON) {
-			return -1.0; // ray is parallel or points away
-		}
-
-		// Geometric Moller-Trumbore
-		Vec3 R1 = rayDir.crossProduct(tri.edge1);
-		double Cs = tri.edge0.dotProduct(R1);
-
-		if (fabs(Cs) < EPSILON) return -1.0; // ray is parallel to triangle
-
-		Vec3 C3 = rayOrigin - tri.v0;
-		Vec3 R2 = C3.crossProduct(tri.edge0);
-
-		double t = tri.edge1.dotProduct(R2) / Cs;
-		double u = C3.dotProduct(R1) / Cs;
-		double v = rayDir.dotProduct(R2) / Cs;
-
-		if (t > EPSILON && u >= 0.0 && v >= 0.0 && (u + v) <= 1.0) {
-			return t; // valid intersection
-		}
-
-		return -1.0;
-	}
-
-private:
-	// Compute normalized triangle normal 
-	Vec3 computeTriangeNormal() const {
-		Vec3 n = edge0.crossProduct(edge1).normalize();
-
-		// Ensure normals point inwards to the room 
-		Vec3 roomCenter(2.0, 2.0, 2.0); 
-		Vec3 triangleCentroid = (v0 + v1 + v2) / 3.0; 
-
-		Vec3 dirToCenter = (roomCenter - triangleCentroid).normalize(); 
-
-		// Flip normal if it points outwards 
-		if (n.dotProduct(dirToCenter) < 0.0) {
-			n = n * -1.0; 
-		}
-
-		return n;
-	}
-
-	// Print triangle vertices and normal --> debug 
-	void printTriangleInfo() const {
-		std::cout << "Triangle vertices: " << v0.x << "," << v0.y << "," << v0.z << " - "
-			<< v1.x << "," << v1.y << "," << v1.z << " - "
-			<< v2.x << "," << v2.y << "," << v2.z << "\n";
-		std::cout << std::endl << "Triangle normal: " << normal.x << "," << normal.y << "," << normal.z << "\n";
-	}
-};
-
-
-
-///  Class of triangle objects such as triangles or cubes 
-class Object {
-public:
-	std::vector<Triangle> triangles;
-
-	void addTriangle(const Triangle& tri) {
-		triangles.push_back(tri);
-	}
-
-	// Function to check ray intersection with all triangles in the object
-	bool intersect(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
-
-		bool hit = false;
-		double tClosest = std::numeric_limits<double>::infinity();
-
-		// Loop all triangles and check for intersection
-		for (const auto& tri : triangles) {
-			double t = Triangle::RayTriangleIntersect(ray.origin, ray.direction, tri);
-
-			// If there is an intersection and its the closest one, store it and take the color
-			if (t > 0.0 && t < tClosest) {
-				hit = true;
-				tClosest = t;
-				outColor = tri.color;
-				outNormal = tri.normal;
-				if (outNormal.dotProduct(ray.direction) > 0.0) {
-					outNormal = outNormal * -1.0; // flip so it faces the incoming ray
-				}
-			}
-		}
-
-		if (hit) {
-			tHit = tClosest;
-		}
-
-		return hit;
-	}
-
-};
-
-class Sphere {
-public: 
-	Vec3 centerPoint; 
-	double radius; 
-	Vec3 color; 
-
-	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
-
-	// Ray intersection test for spheres 
-	bool RaySphereIntersection(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
-
-		// Compute the vector distance from sphere center to ray
-		Vec3 L = centerPoint - ray.origin; 
-
-		double t_ca = L.dotProduct(ray.direction); 
-		double d2 = L.dotProduct(L) - t_ca * t_ca; 
-
-		if (d2 > std::pow(radius, 2)) {
-			return false; 
-		}
-
-		double t_hc = std::sqrt(std::pow(radius, 2) - d2); 
-		double t0 = t_ca - t_hc; 
-		double t1 = t_ca + t_hc; 
-
-		if (t1 < 0) {
-			return false; 
-		}
-
-		tHit = (t0 > 0) ? t0 : t1; 
-
-		Vec3 hitPoint = ray.origin + ray.direction * tHit; 
-		outNormal = (hitPoint - centerPoint).normalize();
-		outColor = color; 
-
-		return true; 
-
-	}
-
-}; 
-
-
 /// Class to make the scene room, that ie a cube 
 class Scene {
-
 public:
-	std::vector<std::shared_ptr<Object>> objs;
+	std::vector<std::shared_ptr<Plane>> planes;
 	std::vector<std::shared_ptr<Sphere>> spheres;
+	std::vector < std::shared_ptr<Cube>> cubes;
+	std::vector < std::shared_ptr<Tetrahedron>> tetrahedrons;
 
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 3);
@@ -196,10 +41,10 @@ public:
 		Vec3 v7(0, 4, 4);
 		
 		// Floor - White
-		auto floor = std::make_shared<Object>();
+		auto floor = std::make_shared<Plane>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
-		addObject(floor);
+		addPlanes(floor);
 
 		// The wall behind the camera
 		/*auto leftWall = std::make_shared<Object>();
@@ -208,39 +53,86 @@ public:
 		addObject(leftWall);*/
 
 		// Back wall - green
-		auto rightWall = std::make_shared<Object>();
+		auto rightWall = std::make_shared<Plane>();
 		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
 		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
-		addObject(rightWall);
+		addPlanes(rightWall);
 
 		// Left wall - blue
-		auto backWall = std::make_shared<Object>();
+		auto backWall = std::make_shared<Plane>();
 		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
 		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
-		addObject(backWall);
+		addPlanes(backWall);
 
 		// Right wall - yellow
-		auto frontWall = std::make_shared<Object>();
+		auto frontWall = std::make_shared<Plane>();
 		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(1, 1, 0)));
 		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(1, 1, 0)));
-		addObject(frontWall);
+		addPlanes(frontWall);
 
 		// Ceiling - white
-		auto ceiling = std::make_shared<Object>();
+		auto ceiling = std::make_shared<Plane>();
 		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.8, 0.8, 0.8)));
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
-		addObject(ceiling);
+		addPlanes(ceiling);
 
 		// Add a sphere to the scene
 		Vec3 sphereCenterPoint(2.0, 2.0, 2.0);
 		Vec3 sphereColor(0.9, 0.9, 0.9); 
-		double sphereRadius = 0.4; 
+		double sphereRadius = 0.2; 
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
 		addSphere(sphere);
+
+		// Add cube to the scene
+		Vec3 cubeCenterPoint(3.5, 3.5, 0.5);
+		double cubeSideLenghts = 1.0;
+		Vec3 cubeColour(0.9, 0.3, 0.1);
+
+		auto cube = std::make_shared<Cube>(cubeCenterPoint, cubeSideLenghts, cubeColour);
+		addCubes(cube);
+
+		Vec3 cubeCenterPoint2(3.5, 2.5, 1.5);
+		double cubeSideLenghts2 = 1.0;
+		Vec3 cubeColour2(0.7, 0.1, 0.5);
+
+		auto cube2 = std::make_shared<Cube>(cubeCenterPoint2, cubeSideLenghts2, cubeColour2);
+		addCubes(cube2);
+
+		Vec3 cubeCenterPoint3(3.5, 1.5, 2.5);
+		double cubeSideLenghts3 = 1.0;
+		Vec3 cubeColour3(0.8, 0.1, 0.6);
+
+		auto cube3 = std::make_shared<Cube>(cubeCenterPoint3, cubeSideLenghts3, cubeColour3);
+		addCubes(cube3);
+
+		Vec3 cubeCenterPoint4(3.5, 0.5, 3.5);
+		double cubeSideLenghts4 = 1.0;
+		Vec3 cubeColour4(0.9, 0.1, 0.7);
+
+		auto cube4 = std::make_shared<Cube>(cubeCenterPoint4, cubeSideLenghts4, cubeColour4);
+		addCubes(cube4);
+
+		Vec3 tetra0(2.0, 2.0, 0.0);
+		Vec3 tetra1(2.8, 1.4, 0.0);
+		Vec3 tetra2(2.6, 1.8, 1.5);
+		Vec3 tetra3(3.0, 2.5, 0.5);
+
+		Vec3 tetraColour(1.0, 0.5, 0.8);
+		auto tetra = std::make_shared<Tetrahedron>(tetra0, tetra1, tetra2, tetra3, tetraColour);
+		addTetrahedron(tetra);
+
 	}
 
-	void addObject(const std::shared_ptr<Object>& obj) {
-		objs.push_back(obj);
+	void addPlanes(const std::shared_ptr<Plane>& plane) {
+		planes.push_back(plane);
+	}
+
+	void addCubes(const std::shared_ptr<Cube>& cube) {
+		cubes.push_back(cube);
+	}
+
+	void addTetrahedron(const std::shared_ptr<Tetrahedron>& tetra) {
+		tetrahedrons.push_back(tetra);
 	}
 
 	void addSphere(const std::shared_ptr<Sphere>& s) {
@@ -254,9 +146,9 @@ public:
 		bool hit = false;
 
 		// Check intersection for all triangle-based objects
-		for (const auto& obj : objs) {
+		for (const auto& plane : planes) {
 			double t; Vec3 n, c;
-			if (obj->intersect(ray, t, n, c) && t < tClosest) {
+			if (plane->intersect(ray, t, n, c) && t < tClosest) {
 				tClosest = t;
 				bestNormal = n;
 				bestColor = c;
@@ -273,6 +165,30 @@ public:
 				bestNormal = n; 
 				bestColor = c; 
 				hit = true; 
+			}
+		}
+
+		// Check intersection for all cubes
+		for (const auto& cube : cubes) {
+			double t; Vec3 n, c;
+
+			if (cube->intersect(ray, t, n, c) && t < tClosest) {
+				tClosest = t;
+				bestNormal = n;
+				bestColor = c;
+				hit = true;
+			}
+		}
+
+		// Check intersection for all tetras
+		for (const auto& tetra : tetrahedrons) {
+			double t; Vec3 n, c;
+
+			if (tetra->intersect(ray, t, n, c) && t < tClosest) {
+				tClosest = t;
+				bestNormal = n;
+				bestColor = c;
+				hit = true;
 			}
 		}
 
