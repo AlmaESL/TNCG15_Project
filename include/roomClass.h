@@ -35,18 +35,21 @@ public:
 		// Check if triangle normal and ray direction are anti-parallel
 		double dotTest = tri.normal.dotProduct(rayDir);
 		if (dotTest > -EPSILON) {
-			return -1.0; // ray is parallel or points away
+			return -1.0; // ray is parallel or points away from  triangle
 		}
 
 		// Geometric Moller-Trumbore
 		Vec3 R1 = rayDir.crossProduct(tri.edge1);
 		double Cs = tri.edge0.dotProduct(R1);
 
-		if (fabs(Cs) < EPSILON) return -1.0; // ray is parallel to triangle
+		//if (fabs(Cs) < EPSILON) {
+		//	return -1.0; // ray is parallel to triangle
+		//} --> vet ej om vi beehöver två test på ray-triagle parallellitet...?
 
 		Vec3 C3 = rayOrigin - tri.v0;
 		Vec3 R2 = C3.crossProduct(tri.edge0);
 
+		// Compute the solution of the intersection equation 
 		double t = tri.edge1.dotProduct(R2) / Cs;
 		double u = C3.dotProduct(R1) / Cs;
 		double v = rayDir.dotProduct(R2) / Cs;
@@ -64,14 +67,14 @@ private:
 		Vec3 n = edge0.crossProduct(edge1).normalize();
 
 		// Ensure normals point inwards to the room 
-		Vec3 roomCenter(2.0, 2.0, 2.0); 
-		Vec3 triangleCentroid = (v0 + v1 + v2) / 3.0; 
+		Vec3 roomCenter(2.0, 2.0, 2.0);
+		Vec3 triangleCentroid = (v0 + v1 + v2) / 3.0;
 
-		Vec3 dirToCenter = (roomCenter - triangleCentroid).normalize(); 
+		Vec3 dirToCenter = (roomCenter - triangleCentroid).normalize();
 
 		// Flip normal if it points outwards 
 		if (n.dotProduct(dirToCenter) < 0.0) {
-			n = n * -1.0; 
+			n = n * -1.0;
 		}
 
 		return n;
@@ -113,9 +116,6 @@ public:
 				tClosest = t;
 				outColor = tri.color;
 				outNormal = tri.normal;
-				if (outNormal.dotProduct(ray.direction) > 0.0) {
-					outNormal = outNormal * -1.0; // flip so it faces the incoming ray
-				}
 			}
 		}
 
@@ -129,44 +129,54 @@ public:
 };
 
 class Sphere {
-public: 
-	Vec3 centerPoint; 
-	double radius; 
-	Vec3 color; 
+public:
+	Vec3 centerPoint;
+	double radius;
+	Vec3 color;
 
 	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
 
 	// Ray intersection test for spheres 
-	bool RaySphereIntersection(const Ray& ray) const {
+	double RaySphereIntersection(const Ray& ray) const {
 
-		// Compute the vector distance from sphere center to ray
-		Vec3 L = centerPoint - ray.origin; 
+		// Distance vector between sphere center and the start point of the ray (camera)
+		Vec3 L = centerPoint - ray.origin;
 
-		double t_ca = L.dotProduct(ray.direction); 
-		double d2 = L.dotProduct(L) - pow(t_ca, 2); 
+		// If the distance vector L and the ray direction are parallel, then their dot product will be negative and 
+		// intersection not occur
+		double t_ca = L.dotProduct(ray.direction);
+		if (t_ca < 0) {
+			return -1.0;
+		} 
 
-		if (d2 > std::pow(radius, 2)) {
-			return false; 
-		}
+		// d2 is the vector length between vector B and the ray in Figure in lec 3
+		double d2 = L.dotProduct(L) - t_ca * t_ca;
 
-		double t_hc = sqrt(pow(radius, 2) - d2); 
-		double t0 = t_ca - t_hc; 
-		double t1 = t_ca + t_hc; 
+		// Sphere radius squared
+		double r2 = radius * radius;
 
-		if (t1 < 0) {
-			return false; 
-		}
+		if (d2 > r2) {
+			return -1.0;  // ray misses sphere
+		} 
+
+		// Compute hte offset 
+		double t_hc = sqrt(r2 - d2);
+
+		// Compute the intersection points t0 and t1, two since ray must enter and leave the sphere
+		double t0 = t_ca - t_hc;
+		double t1 = t_ca + t_hc;
 
 		if (t0 > 0) {
-			return t0; 
+			return t0;
+		} 
+		if (t1 > 0) {
+			return t1;
+		}
 
-		}
-		else {
-			return t1; 
-		}
+		return -1.0;
 	}
 
-}; 
+};
 
 
 /// Class to make the scene room, that ie a cube 
@@ -176,7 +186,6 @@ public:
 	std::vector<std::shared_ptr<Object>> objs;
 	std::vector<std::shared_ptr<Sphere>> spheres;
 
-	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 3);
 	Vec3 lightColor = Vec3(1, 1, 1);
 	double lightIntensity = 300.0;
@@ -193,32 +202,32 @@ public:
 		Vec3 v5(4, 0, 4);
 		Vec3 v6(4, 4, 4);
 		Vec3 v7(0, 4, 4);
-		
+
 		// Floor - White
 		auto floor = std::make_shared<Object>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
 		addObject(floor);
 
-		// The wall behind the camera
-		/*auto leftWall = std::make_shared<Object>();
-		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 1, 0)));
-		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 1, 0)));
-		addObject(leftWall);*/
+        // The wall behind the camera
+        auto leftWall = std::make_shared<Object>();
+        leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 0, 1)));
+        leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 0, 1)));
+        addObject(leftWall);
 
-		// Back wall - green
-		auto rightWall = std::make_shared<Object>();
-		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
-		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
-		addObject(rightWall);
+        // Back wall - red
+        auto rightWall = std::make_shared<Object>();
+        rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(1, 0, 0)));
+        rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(1, 0, 0)));
+        addObject(rightWall);
 
-		// Left wall - blue
-		auto backWall = std::make_shared<Object>();
-		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
-		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
-		addObject(backWall);
+        // Left wall - blue 
+        auto backWall = std::make_shared<Object>();
+        backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
+        backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
+        addObject(backWall);
 
-		// Right wall - yellow
+        // Right wall - yellow 
 		auto frontWall = std::make_shared<Object>();
 		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(1, 1, 0)));
 		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(1, 1, 0)));
@@ -230,10 +239,10 @@ public:
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
 		addObject(ceiling);
 
-		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(2.0, 2.0, 2.0);
-		Vec3 sphereColor(0.9, 0.9, 0.9); 
-		double sphereRadius = 0.4; 
+        // Add a sphere
+        Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
+        Vec3 sphereColor(0.6, 0.6, 1.0);
+        double sphereRadius = 0.9;
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
 		addSphere(sphere);
 	}
@@ -243,10 +252,11 @@ public:
 	}
 
 	void addSphere(const std::shared_ptr<Sphere>& s) {
-		spheres.push_back(s); 
+		spheres.push_back(s);
 	}
 
 	bool trace(const Ray& ray, Vec3& hitColor) const {
+
 		double tClosest = std::numeric_limits<double>::infinity();
 		Vec3 normal, color, bestNormal, bestColor, hitPoint;
 
@@ -265,13 +275,13 @@ public:
 
 		// Check intersection for all spheres 
 		for (const auto& sphere : spheres) {
-
-			double tsphere = sphere->RaySphereIntersection(ray); 
-			if (tsphere && tsphere < tClosest) {
-				tClosest = tsphere; 
-				hitPoint = sphere->centerPoint + ray.direction * tsphere; 
-				bestNormal = (hitPoint - sphere->centerPoint).normalize(); 
-				bestColor = sphere->color; 
+			double tsphere = sphere->RaySphereIntersection(ray);
+			if (tsphere > 0.0 && tsphere < tClosest) {
+				tClosest = tsphere;
+				hitPoint = ray.origin + ray.direction * tsphere;
+				bestNormal = (hitPoint - sphere->centerPoint).normalize();
+				bestColor = sphere->color;
+				hit = true;
 			}
 		}
 
@@ -287,21 +297,25 @@ public:
 
 		// Lambertian shading
 		if (hit) {
-			Vec3 hitPoint = ray.origin + ray.direction * tClosest;
+
+			// Ray's hit point with a scene surface
+			hitPoint = ray.origin + ray.direction * tClosest;
 
 			Vec3 lightVec = lightPos - hitPoint;
 			Vec3 lightDir = lightVec.normalize();
 
-			if (bestNormal.dotProduct(lightDir) < 0.0) {
-				bestNormal = bestNormal * -1.0;
-			}
-
+			// Lambertian relection factor
 			double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
+			// Compute squared distance from light source to intersection surface point - squared distance since light
+			// intesnity decreases by squared distance
 			double distance2 = lightVec.dotProduct(lightVec);
+
+			// Intensity of the reflection
 			double intensity = lightIntensity * diff / distance2;
 
-			double ambient = 0.1; 
-			hitColor = bestColor * (lightColor * intensity + Vec3(ambient, ambient, ambient));
+			// Compute the color of the current pixel
+            hitColor = bestColor * (lightColor * intensity);
+
 		}
 		else {
 			hitColor = backgroundColor;

@@ -42,9 +42,9 @@ public:
 			c = Vec3(std::sqrt(c.x), std::sqrt(c.y), std::sqrt(c.z));
 
 			// Clamp and convert to unsigned char since stb_image_write needs that format
-			frameBuffer[3 * i + 0] = (unsigned char)(std::min(255.0, c.x * 255));
-			frameBuffer[3 * i + 1] = (unsigned char)(std::min(255.0, c.y * 255));
-			frameBuffer[3 * i + 2] = (unsigned char)(std::min(255.0, c.z * 255));
+			frameBuffer[3 * i + 0] = (unsigned char)(std::min(255.0, c.x * 255.0));
+			frameBuffer[3 * i + 1] = (unsigned char)(std::min(255.0, c.y * 255.0));
+			frameBuffer[3 * i + 2] = (unsigned char)(std::min(255.0, c.z * 255.0));
 		}
 
 		// Write the image to file
