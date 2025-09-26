@@ -39,7 +39,7 @@ public:
 		Vec3 v5(4, 0, 4);
 		Vec3 v6(4, 4, 4);
 		Vec3 v7(0, 4, 4);
-		
+
 		// Floor - White
 		auto floor = std::make_shared<Plane>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
@@ -47,10 +47,10 @@ public:
 		addPlanes(floor);
 
 		// The wall behind the camera
-		/*auto leftWall = std::make_shared<Object>();
+		auto leftWall = std::make_shared<Plane>();
 		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 1, 0)));
 		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 1, 0)));
-		addObject(leftWall);*/
+		addPlanes(leftWall);
 
 		// Back wall - green
 		auto rightWall = std::make_shared<Plane>();
@@ -77,9 +77,9 @@ public:
 		addPlanes(ceiling);
 
 		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(2.0, 2.0, 2.0);
-		Vec3 sphereColor(0.9, 0.9, 0.9); 
-		double sphereRadius = 0.2; 
+		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
+		Vec3 sphereColor(0.6, 0.6, 1.0);
+		double sphereRadius = 0.9;
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
 		addSphere(sphere);
 
@@ -136,12 +136,14 @@ public:
 	}
 
 	void addSphere(const std::shared_ptr<Sphere>& s) {
-		spheres.push_back(s); 
+		spheres.push_back(s);
 	}
 
+
 	bool trace(const Ray& ray, Vec3& hitColor) const {
+
 		double tClosest = std::numeric_limits<double>::infinity();
-		Vec3 normal, color, bestNormal, bestColor;
+		Vec3 normal, color, bestNormal, bestColor, hitPoint;
 
 		bool hit = false;
 
@@ -158,15 +160,17 @@ public:
 
 		// Check intersection for all spheres 
 		for (const auto& sphere : spheres) {
-			double t; Vec3 n, c;
+			double tsphere = sphere->RaySphereIntersection(ray);
 
-			if (sphere->RaySphereIntersection(ray, t, n, c) && t < tClosest) {
-				tClosest = t; 
-				bestNormal = n; 
-				bestColor = c; 
-				hit = true; 
+			if (tsphere > 0.0 && tsphere < tClosest) {
+				tClosest = tsphere;
+				hitPoint = ray.origin + ray.direction * tsphere;
+				bestNormal = (hitPoint - sphere->centerPoint).normalize();
+				bestColor = sphere->color;
+				hit = true;
 			}
 		}
+
 
 		// Check intersection for all cubes
 		for (const auto& cube : cubes) {
@@ -203,22 +207,27 @@ public:
 		}*/
 
 		// Lambertian shading
+	// Lambertian shading
 		if (hit) {
-			Vec3 hitPoint = ray.origin + ray.direction * tClosest;
+
+			// Ray's hit point with a scene surface
+			hitPoint = ray.origin + ray.direction * tClosest;
 
 			Vec3 lightVec = lightPos - hitPoint;
 			Vec3 lightDir = lightVec.normalize();
 
-			if (bestNormal.dotProduct(lightDir) < 0.0) {
-				bestNormal = bestNormal * -1.0;
-			}
-
+			// Lambertian relection factor
 			double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
+			// Compute squared distance from light source to intersection surface point - squared distance since light
+			// intesnity decreases by squared distance
 			double distance2 = lightVec.dotProduct(lightVec);
+
+			// Intensity of the reflection
 			double intensity = lightIntensity * diff / distance2;
 
-			double ambient = 0.1; 
-			hitColor = bestColor * (lightColor * intensity + Vec3(ambient, ambient, ambient));
+			// Compute the color of the current pixel
+			hitColor = bestColor * (lightColor * intensity);
+
 		}
 		else {
 			hitColor = backgroundColor;
@@ -227,4 +236,3 @@ public:
 	}
 
 };
-

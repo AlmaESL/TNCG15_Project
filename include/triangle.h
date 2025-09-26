@@ -26,18 +26,21 @@ public:
 		// Check if triangle normal and ray direction are anti-parallel
 		double dotTest = tri.normal.dotProduct(rayDir);
 		if (dotTest > -EPSILON) {
-			return -1.0; // ray is parallel or points away
+			return -1.0; // ray is parallel or points away from  triangle
 		}
 
 		// Geometric Moller-Trumbore
 		Vec3 R1 = rayDir.crossProduct(tri.edge1);
 		double Cs = tri.edge0.dotProduct(R1);
 
-		if (fabs(Cs) < EPSILON) return -1.0; // ray is parallel to triangle
+		//if (fabs(Cs) < EPSILON) {
+		//	return -1.0; // ray is parallel to triangle
+		//} --> vet ej om vi beehöver två test på ray-triagle parallellitet...?
 
 		Vec3 C3 = rayOrigin - tri.v0;
 		Vec3 R2 = C3.crossProduct(tri.edge0);
 
+		// Compute the solution of the intersection equation 
 		double t = tri.edge1.dotProduct(R2) / Cs;
 		double u = C3.dotProduct(R1) / Cs;
 		double v = rayDir.dotProduct(R2) / Cs;

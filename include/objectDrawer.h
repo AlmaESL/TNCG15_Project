@@ -8,35 +8,45 @@ public:
 	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
 
 	// Ray intersection test for spheres 
-	bool RaySphereIntersection(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
+	double RaySphereIntersection(const Ray& ray) const {
 
-		// Compute the vector distance from sphere center to ray
+		// Distance vector between sphere center and the start point of the ray (camera)
 		Vec3 L = centerPoint - ray.origin;
 
+		// If the distance vector L and the ray direction are parallel, then their dot product will be negative and 
+		// intersection not occur
 		double t_ca = L.dotProduct(ray.direction);
-		double d2 = L.dotProduct(L) - t_ca * t_ca;
-
-		if (d2 > std::pow(radius, 2)) {
-			return false;
+		if (t_ca < 0) {
+			return -1.0;
 		}
 
-		double t_hc = std::sqrt(std::pow(radius, 2) - d2);
+		// d2 is the vector length between vector B and the ray in Figure in lec 3
+		double d2 = L.dotProduct(L) - t_ca * t_ca;
+
+		// Sphere radius squared
+		double r2 = radius * radius;
+
+		if (d2 > r2) {
+			return -1.0;  // ray misses sphere
+		}
+
+		// Compute hte offset 
+		double t_hc = sqrt(r2 - d2);
+
+		// Compute the intersection points t0 and t1, two since ray must enter and leave the sphere
 		double t0 = t_ca - t_hc;
 		double t1 = t_ca + t_hc;
 
-		if (t1 < 0) {
-			return false;
+		if (t0 > 0) {
+			return t0;
+		}
+		if (t1 > 0) {
+			return t1;
 		}
 
-		tHit = (t0 > 0) ? t0 : t1;
-
-		Vec3 hitPoint = ray.origin + ray.direction * tHit;
-		outNormal = (hitPoint - centerPoint).normalize();
-		outColor = color;
-
-		return true;
+		return -1.0;
 	}
-private:
+
 	Vec3 centerPoint;
 	double radius;
 	Vec3 color;
