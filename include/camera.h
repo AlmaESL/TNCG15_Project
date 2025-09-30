@@ -2,6 +2,7 @@
 
 #include "include/roomClass.h"
 #include "include/ray.h"
+#include"stocasticRayGeneration.h"
 
 class Camera {
 public:
@@ -27,5 +28,9 @@ public:
 		Vec3 ViewDir = (pointOnImagePlane - eyePos).normalize();
 
 		return Ray(eyePos, ViewDir);
+	}
+
+	StocasticRayGeneration generateViewRays(int n) const {
+		return StocasticRayGeneration(eyePos, n);
 	}
 };

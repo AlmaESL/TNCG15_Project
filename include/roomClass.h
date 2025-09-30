@@ -226,7 +226,7 @@ public:
 			double intensity = lightIntensity * diff / distance2;
 
 			// Compute the color of the current pixel
-			hitColor = bestColor * (lightColor * intensity);
+			hitColor = (bestColor * (lightColor * intensity));
 
 		}
 		else {

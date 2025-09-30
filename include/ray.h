@@ -2,7 +2,6 @@
 
 #include "include/vec3.h"
 
-
 /// Utility structure for rays 
 class Ray {
 public:
