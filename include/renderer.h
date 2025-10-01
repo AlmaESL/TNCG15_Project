@@ -3,6 +3,7 @@
 #include "include/roomClass.h"
 #include "include/camera.h"
 #include "include/ray.h"
+#include "tracer.h"
 
 /// Renderer class
 class Renderer {
@@ -13,24 +14,29 @@ public:
 		std::vector<unsigned char> frameBuffer(width * height * 3);
 
 		double maxVal = 0.0;
-		int maxRays = 500;
+		int maxRays = 10;
 		std::vector<Vec3> floatBuffer(width * height);
+		Tracer t;
 
 		// Iterate all pixels 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				// Single ray
-				//Ray ray = camera.generateViewRay(x, y, width, height);
+				Ray ray = camera.generateViewRay(x, y, width, height);
 
 				// Uniform ray distribution
-				StocasticRayGeneration randomRays = camera.generateViewRays(maxRays);
+				//StocasticRayGeneration randomRays = camera.generateViewRays(maxRays);
 				Vec3 color;
 
+				/*
 				for (const auto& ray : randomRays.rays) {
 					scene.trace(ray, color);
 				}
-
-				//scene.trace(ray, color);
+				//std::cout << "\n";
+				*/
+				
+				//t.flatTrace(ray, scene, color);
+				t.lambTrace(ray, scene, color);
 
 				// Assign color to frame buffer on corresponding pixel
 				floatBuffer[y * width + x] = color;
