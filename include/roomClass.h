@@ -26,6 +26,7 @@ public:
 	Vec3 lightPos = Vec3(2, 2, 3);
 	Vec3 lightColor = Vec3(1, 1, 1);
 	double lightIntensity = 300.0;
+	double ambient = 0.5;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
 	// Constructor adds the room cube and a camera
@@ -76,12 +77,14 @@ public:
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
 		addPlanes(ceiling);
 
+		/*
 		// Add a sphere to the scene
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
 		double sphereRadius = 0.9;
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
 		addSphere(sphere);
+		*/
 
 		// Add cube to the scene
 		Vec3 cubeCenterPoint(3.5, 3.5, 0.5);

@@ -44,6 +44,10 @@ struct Vec3 {
 		return std::sqrt(x * x + y * y + z * z);
 	}
 
+	double euclDist(const Vec3& v) const {
+		return hypot(hypot(x - v.x, y - v.y), z - v.z);
+	}
+
 	Vec3 normalize() const {
 		double len = getLength();
 		return len > 0 ? (*this) / len : *this;

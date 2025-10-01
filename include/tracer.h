@@ -2,6 +2,7 @@
 
 #include"roomClass.h"
 #include "vec3.h"
+#include "ray.h"
 
 class Tracer {
 public:
@@ -63,6 +64,26 @@ public:
 		return hit;
 	}
 
+	bool shadowTest(const Ray& ray, const Scene& scene , Vec3& hitColor) {
+		intersections(ray, scene);
+
+		// Ray's hit point with a scene surface
+		hitPoint = ray.origin + ray.direction * tClosest;
+
+		Ray sRay = Ray::shadowRay(hitPoint, scene.lightPos);
+
+		double lightDist = sRay.origin.euclDist(scene.lightPos);
+
+		bool hit = intersections(sRay, scene);
+
+		if (hit && (tClosest < lightDist)) {
+			hitColor = (bestColor * (scene.lightColor + scene.ambient));
+			return true;
+		}else {
+			return false;
+		}
+	}
+
 	bool flatTrace(const Ray& ray, const Scene& scene, Vec3& hitColor) {
 		bool hit = intersections(ray, scene);
 
@@ -100,7 +121,7 @@ public:
 			double intensity = scene.lightIntensity * diff / distance2;
 
 			// Compute the color of the current pixel
-			hitColor = (bestColor * (scene.lightColor * intensity));
+			hitColor =  (bestColor * (scene.lightColor* intensity));
 
 		}
 		else {
@@ -109,6 +130,6 @@ public:
 		}
 	}
 private:
-	double tClosest = 0.0;
-	Vec3 normal, color, bestNormal, bestColor, hitPoint = { 0.0f, 0.0f, 0.0f };
+	double tClosest;
+	Vec3 normal, color, bestNormal, bestColor, hitPoint;
 };

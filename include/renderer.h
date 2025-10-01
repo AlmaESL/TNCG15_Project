@@ -36,7 +36,11 @@ public:
 				*/
 				
 				//t.flatTrace(ray, scene, color);
-				t.lambTrace(ray, scene, color);
+
+				if (t.shadowTest(ray, scene, color)) {}
+				else {
+					t.lambTrace(ray, scene, color);
+				}
 
 				// Assign color to frame buffer on corresponding pixel
 				floatBuffer[y * width + x] = color;
