@@ -54,7 +54,29 @@ public:
 			return false;
 		}
 
-		// Mirror reflection
+		// Sphere Fresnel Reflection (no transmission yet)
+		if (hitType == "SPHERE") {
+			double refrIdx = 1.5;
+			double cosTheta = -1.0 * ray.direction.dotProduct(bestNormal);
+			double reflectance = schlickReflectance(cosTheta, refrIdx);
+
+			if (depth < maxDepth) {
+				Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
+				Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
+				Ray reflectRay = Ray(reflectOrigin, reflectDir);
+
+				Vec3 reflectColour;
+				trace(reflectRay, scene, reflectColour, (++depth), maxDepth, shadingMethod);
+
+				hitColor = reflectColour * reflectance;
+				return true;
+			}else {
+				hitColor = bestColor * scene.ambient;
+				return true;
+			}
+		}
+
+		// Mirror reflection with triangle object
 		if (hitType=="TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
@@ -112,6 +134,11 @@ public:
 		}
 
 		return false;
+	}
+
+	double schlickReflectance(double cosTheta, double refrIdx) {
+		double r0 = pow(((1 - refrIdx) / (1 + refrIdx)), 2);
+		return pow((r0 + (1 - r0) * (1 - cosTheta)), 5);
 	}
 
 private:
