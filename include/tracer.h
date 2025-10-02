@@ -7,7 +7,7 @@
 class Tracer {
 public:
 	Tracer() : tClosest(0.0), normal(Vec3(0.0,0.0,0.0)), bestNormal(Vec3(0.0, 0.0, 0.0)),
-					bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0,0.0,0.0)){}
+		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {}
 
 	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor,int depth = 0, int maxDepth = 0, std::string shadingMethod = "FLAT") {
 		// Ray includes ray órigin and direction.
@@ -26,6 +26,7 @@ public:
 				tClosest = t;
 				bestNormal = n;
 				bestColor = c;
+				hitType = "TRIANGLE";
 				hitMaterial = obj->getMat();
 				hit = true;
 			}
@@ -40,6 +41,7 @@ public:
 				hitPoint = ray.origin + ray.direction * tsphere;
 				bestNormal = (hitPoint - sphere->centerPoint).normalize();
 				bestColor = sphere->color;
+				hitType = "SPHERE";
 				hitMaterial = sphere->material;
 				hit = true;
 			}
@@ -52,7 +54,7 @@ public:
 		}
 
 		// Mirror reflection
-		if (hitMaterial == "MIRROR" && (depth < maxDepth)) {
+		if (hitType== "TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
@@ -71,8 +73,6 @@ public:
 				hitColor = (bestColor * scene.ambient);
 				return true;
 			}else {
-				// Reset ray intersections after shadow test
-				intersections(ray, scene);
 				// Ray's hit point with a scene surface
 				hitPoint = ray.origin + ray.direction * tClosest;
 
@@ -89,44 +89,10 @@ public:
 				double intensity = scene.lightIntensity * diff / distance2;
 
 				// Compute the color of the current pixel
-				hitColor = (bestColor * (scene.lightColor * intensity));
+				hitColor = (bestColor * ((scene.lightColor + scene.ambient) * intensity));
 				return true;
 			}
 		}
-		
-	}
-
-	bool intersections(const Ray& ray, const Scene& scene){
-		bool hit = false;
-		tClosest = std::numeric_limits<double>::infinity();
-
-		// Check intersection for all triangle-based objects
-		for (const auto& obj : scene.objs) {
-			double t; Vec3 n, c;
-			if (obj->intersect(ray, t, n, c) && t < tClosest) {
-				tClosest = t;
-				bestNormal = n;
-				bestColor = c;
-				hitMaterial = obj->getMat();
-				hit = true;
-			}
-		}
-
-		// Check intersection for all spheres 
-		for (const auto& sphere : scene.spheres) {
-			double tsphere = sphere->RaySphereIntersection(ray);
-
-			if (tsphere > 0.0 && tsphere < tClosest) {
-				tClosest = tsphere;
-				hitPoint = ray.origin + ray.direction * tsphere;
-				bestNormal = (hitPoint - sphere->centerPoint).normalize();
-				bestColor = sphere->color;
-				hitMaterial = sphere->material;
-				hit = true;
-			}
-		}
-
-		return hit;
 	}
 
 	bool shadowTest(const Ray& ray, const Scene& scene) {
@@ -136,17 +102,26 @@ public:
 
 		double lightDist = sRay.origin.euclDist(scene.lightPos);
 
-		bool hit = intersections(sRay, scene);
-
-		if (hit && (tClosest < lightDist)) {
-			return true;
-		}else {
-			return false;
+		for (const auto& sphere : scene.spheres) {
+			double tsphere = sphere->RaySphereIntersection(sRay);
+			if (tsphere > 0.0 && tsphere < lightDist) {
+				return true;
+			}
 		}
+
+		for (const auto& obj : scene.objs) {
+			double t; Vec3 n, c;
+			if (obj->intersect(sRay, t, n, c) && t < lightDist) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 private:
 	double tClosest;
 	std::string hitMaterial;
+	std::string hitType;
 	Vec3 normal, color, bestNormal, bestColor, hitPoint;
 };
