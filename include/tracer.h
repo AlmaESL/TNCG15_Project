@@ -55,9 +55,47 @@ public:
 		}
 
 		// Sphere Fresnel Reflection (no transmission yet)
-		if (hitType == "SPHERE") {
+		if (hitType == "SPHERE" && (depth < maxDepth)) {
 			double refrIdx = 1.5;
+			bool frontFace = ray.direction.dotProduct(bestNormal) < 0.0;
+
+			double etaRatio;
+			Vec3 n;
+			if (frontFace) {
+				etaRatio = 1.0 / refrIdx;
+				n = bestNormal;
+			}else {
+				etaRatio = refrIdx / 1.0;
+				n =bestNormal * (-1.0);
+			}
+
 			double cosTheta = -1.0 * ray.direction.dotProduct(bestNormal);
+			double R = schlickReflectance(cosTheta, refrIdx);
+
+			srand(time(NULL));
+			if ((std::rand() % 2) < R) {
+				Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
+				Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
+				Ray reflectRay = Ray(reflectOrigin, reflectDir);
+
+				return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
+			}else {
+				Vec3 refractDir = refractRay(ray.direction, bestNormal, etaRatio);
+
+				if (refractDir.getLength() < 0) { // TEMPORARY SOLUTION
+					Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
+					Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
+					Ray reflectRay = Ray(reflectOrigin, reflectDir);
+
+					return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
+				}else {
+					Vec3 refractOrigin = hitPoint + (refractDir * 1e-4);
+					Ray refractRay = Ray(refractOrigin, refractDir);
+
+					return trace(refractRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
+				}
+			}
+
 			double reflectance = schlickReflectance(cosTheta, refrIdx);
 
 			if (depth < maxDepth) {
@@ -139,6 +177,18 @@ public:
 	double schlickReflectance(double cosTheta, double refrIdx) {
 		double r0 = pow(((1 - refrIdx) / (1 + refrIdx)), 2);
 		return pow((r0 + (1 - r0) * (1 - cosTheta)), 5);
+	}
+
+	Vec3 refractRay(Vec3 dir, Vec3 n, double eta) {
+		double cosTheta = -1.0 * dir.dotProduct(bestNormal);
+		double sin2Theta = 1.0 - (cosTheta * cosTheta);
+		double k = 1.0 - (eta * eta * sin2Theta);
+
+		if (k < 0){
+			return Vec3(0.0,0.0,0.0);
+		}else {
+			return (dir * eta) + n * (eta * cosTheta - sqrt(k));
+		}
 	}
 
 private:

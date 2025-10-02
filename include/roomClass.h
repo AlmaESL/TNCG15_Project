@@ -48,8 +48,8 @@ public:
 
 		// The wall behind the camera
 		auto leftWall = std::make_shared<TriObj>();
-		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 1, 0)));
-		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 1, 0)));
+		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(1, 0, 0)));
+		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(1, 0, 0)));
 		leftWall->setMat("DIFFUSE");
 		addTriObj(leftWall);
 
