@@ -17,10 +17,8 @@
 /// Class to make the scene room, that ie a cube 
 class Scene {
 public:
-	std::vector<std::shared_ptr<Plane>> planes;
+	std::vector<std::shared_ptr<TriObj>> objs;
 	std::vector<std::shared_ptr<Sphere>> spheres;
-	std::vector < std::shared_ptr<Cube>> cubes;
-	std::vector < std::shared_ptr<Tetrahedron>> tetrahedrons;
 
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 3);
@@ -42,46 +40,46 @@ public:
 		Vec3 v7(0, 4, 4);
 
 		// Floor - White
-		auto floor = std::make_shared<Plane>();
+		auto floor = std::make_shared<TriObj>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
-		floor->material = "DIFFUSE";
-		addPlanes(floor);
+		floor->setMat("DIFFUSE");
+		addTriObj(floor);
 
 		// The wall behind the camera
-		auto leftWall = std::make_shared<Plane>();
+		auto leftWall = std::make_shared<TriObj>();
 		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 1, 0)));
 		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 1, 0)));
-		leftWall->material = "DIFFUSE";
-		addPlanes(leftWall);
+		leftWall->setMat("DIFFUSE");
+		addTriObj(leftWall);
 
 		// Back wall - green
-		auto rightWall = std::make_shared<Plane>();
+		auto rightWall = std::make_shared<TriObj>();
 		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
 		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
-		rightWall->material = "DIFFUSE";
-		addPlanes(rightWall);
+		rightWall->setMat("DIFFUSE");
+		addTriObj(rightWall);
 
 		// Left wall - blue
-		auto backWall = std::make_shared<Plane>();
+		auto backWall = std::make_shared<TriObj>();
 		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
 		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
-		backWall->material = "DIFFUSE";
-		addPlanes(backWall);
+		backWall->setMat("DIFFUSE");
+		addTriObj(backWall);
 
 		// Right wall - yellow
-		auto frontWall = std::make_shared<Plane>();
+		auto frontWall = std::make_shared<TriObj>();
 		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(1, 1, 0)));
 		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(1, 1, 0)));
-		frontWall->material = "DIFFUSE";
-		addPlanes(frontWall);
+		frontWall->setMat("DIFFUSE");
+		addTriObj(frontWall);
 
 		// Ceiling - white
-		auto ceiling = std::make_shared<Plane>();
+		auto ceiling = std::make_shared<TriObj>();
 		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.8, 0.8, 0.8)));
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
-		ceiling->material = "DIFFUSE";
-		addPlanes(ceiling);
+		ceiling->setMat("DIFFUSE");
+		addTriObj(ceiling);
 
 
 		// Add a sphere to the scene
@@ -97,53 +95,14 @@ public:
 		double cubeSideLenghts = 1.0;
 		Vec3 cubeColour(0.9, 0.9, 0.9);
 		std::string cubeMat = "MIRROR";
-		auto cube = std::make_shared<Cube>(cubeCenterPoint, cubeSideLenghts, cubeColour, cubeMat);
-		addCubes(cube);
-
-		/*
-
-		Vec3 cubeCenterPoint2(3.5, 2.5, 1.5);
-		double cubeSideLenghts2 = 1.0;
-		Vec3 cubeColour2(0.7, 0.1, 0.5);
-
-		auto cube2 = std::make_shared<Cube>(cubeCenterPoint2, cubeSideLenghts2, cubeColour2);
-		addCubes(cube2);
-
-		Vec3 cubeCenterPoint3(3.5, 1.5, 2.5);
-		double cubeSideLenghts3 = 1.0;
-		Vec3 cubeColour3(0.8, 0.1, 0.6);
-
-		auto cube3 = std::make_shared<Cube>(cubeCenterPoint3, cubeSideLenghts3, cubeColour3);
-		addCubes(cube3);
-
-		Vec3 cubeCenterPoint4(3.5, 0.5, 3.5);
-		double cubeSideLenghts4 = 1.0;
-		Vec3 cubeColour4(0.9, 0.1, 0.7);
-
-		auto cube4 = std::make_shared<Cube>(cubeCenterPoint4, cubeSideLenghts4, cubeColour4);
-		addCubes(cube4);
-
-		Vec3 tetra0(2.0, 2.0, 0.0);
-		Vec3 tetra1(2.8, 1.4, 0.0);
-		Vec3 tetra2(2.6, 1.8, 1.5);
-		Vec3 tetra3(3.0, 2.5, 0.5);
-
-		Vec3 tetraColour(1.0, 0.5, 0.8);
-		auto tetra = std::make_shared<Tetrahedron>(tetra0, tetra1, tetra2, tetra3, tetraColour);
-		addTetrahedron(tetra);
-		*/
+		auto cube = std::make_shared<TriObj>();
+		cube->createCube(cubeCenterPoint, cubeSideLenghts, cubeColour);
+		cube->setMat("MIRROR");
+		addTriObj(cube);
 	}
 
-	void addPlanes(const std::shared_ptr<Plane>& plane) {
-		planes.push_back(plane);
-	}
-
-	void addCubes(const std::shared_ptr<Cube>& cube) {
-		cubes.push_back(cube);
-	}
-
-	void addTetrahedron(const std::shared_ptr<Tetrahedron>& tetra) {
-		tetrahedrons.push_back(tetra);
+	void addTriObj(const std::shared_ptr<TriObj>& obj) {
+		objs.push_back(obj);
 	}
 
 	void addSphere(const std::shared_ptr<Sphere>& s) {

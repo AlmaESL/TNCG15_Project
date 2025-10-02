@@ -20,13 +20,13 @@ public:
 		tClosest = std::numeric_limits<double>::infinity();
 
 		// Check intersection for all triangle-based objects
-		for (const auto& plane : scene.planes) {
+		for (const auto& obj : scene.objs) {
 			double t; Vec3 n, c;
-			if (plane->intersect(ray, t, n, c) && t < tClosest) {
+			if (obj->intersect(ray, t, n, c) && t < tClosest) {
 				tClosest = t;
 				bestNormal = n;
 				bestColor = c;
-				hitMaterial = plane->material;
+				hitMaterial = obj->getMat();
 				hit = true;
 			}
 		}
@@ -41,32 +41,6 @@ public:
 				bestNormal = (hitPoint - sphere->centerPoint).normalize();
 				bestColor = sphere->color;
 				hitMaterial = sphere->material;
-				hit = true;
-			}
-		}
-
-		// Check intersection for all cubes
-		for (const auto& cube : scene.cubes) {
-			double t; Vec3 n, c;
-
-			if (cube->intersect(ray, t, n, c) && t < tClosest) {
-				tClosest = t;
-				bestNormal = n;
-				bestColor = c;
-				hitMaterial = cube->getMat();
-				hit = true;
-			}
-		}
-
-		// Check intersection for all tetras
-		for (const auto& tetra : scene.tetrahedrons) {
-			double t; Vec3 n, c;
-
-			if (tetra->intersect(ray, t, n, c) && t < tClosest) {
-				tClosest = t;
-				bestNormal = n;
-				bestColor = c;
-				hitMaterial = tetra->getMat();
 				hit = true;
 			}
 		}
@@ -127,13 +101,13 @@ public:
 		tClosest = std::numeric_limits<double>::infinity();
 
 		// Check intersection for all triangle-based objects
-		for (const auto& plane : scene.planes) {
+		for (const auto& obj : scene.objs) {
 			double t; Vec3 n, c;
-			if (plane->intersect(ray, t, n, c) && t < tClosest) {
+			if (obj->intersect(ray, t, n, c) && t < tClosest) {
 				tClosest = t;
 				bestNormal = n;
 				bestColor = c;
-				hitMaterial = plane->material;
+				hitMaterial = obj->getMat();
 				hit = true;
 			}
 		}
@@ -148,32 +122,6 @@ public:
 				bestNormal = (hitPoint - sphere->centerPoint).normalize();
 				bestColor = sphere->color;
 				hitMaterial = sphere->material;
-				hit = true;
-			}
-		}
-
-		// Check intersection for all cubes
-		for (const auto& cube : scene.cubes) {
-			double t; Vec3 n, c;
-
-			if (cube->intersect(ray, t, n, c) && t < tClosest) {
-				tClosest = t;
-				bestNormal = n;
-				bestColor = c;
-				hitMaterial = cube->getMat();
-				hit = true;
-			}
-		}
-
-		// Check intersection for all tetras
-		for (const auto& tetra : scene.tetrahedrons) {
-			double t; Vec3 n, c;
-
-			if (tetra->intersect(ray, t, n, c) && t < tClosest) {
-				tClosest = t;
-				bestNormal = n;
-				bestColor = c;
-				hitMaterial = tetra->getMat();
 				hit = true;
 			}
 		}
