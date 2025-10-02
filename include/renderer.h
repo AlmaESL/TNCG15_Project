@@ -23,24 +23,12 @@ public:
 			for (int x = 0; x < width; x++) {
 				// Single ray
 				Ray ray = camera.generateViewRay(x, y, width, height);
-
-				// Uniform ray distribution
-				//StocasticRayGeneration randomRays = camera.generateViewRays(maxRays);
 				Vec3 color;
+				int maxDepth = 1;
+				std::string shadingMethod = "LAMBERTIAN";
 
-				/*
-				for (const auto& ray : randomRays.rays) {
-					scene.trace(ray, color);
-				}
-				//std::cout << "\n";
-				*/
-				
-				//t.flatTrace(ray, scene, color);
+				t.trace(ray, scene, color, 0, maxDepth, shadingMethod);
 
-				if (t.shadowTest(ray, scene, color)) {}
-				else {
-					t.lambTrace(ray, scene, color);
-				}
 
 				// Assign color to frame buffer on corresponding pixel
 				floatBuffer[y * width + x] = color;

@@ -5,7 +5,7 @@
 
 class Sphere {
 public:
-	Sphere(const Vec3& c, double r, const Vec3& col) : centerPoint(c), radius(r), color(col) {}
+	Sphere(const Vec3& c, double r, const Vec3& col, const std::string mat) : centerPoint(c), radius(r), color(col), material(mat) {}
 
 	// Ray intersection test for spheres 
 	double RaySphereIntersection(const Ray& ray) const {
@@ -50,11 +50,13 @@ public:
 	Vec3 centerPoint;
 	double radius;
 	Vec3 color;
+	std::string material;
 };
 
 class Plane {
 public:
 	std::vector<Triangle> triangles;
+	std::string material;
 
 	void addTriangle(const Triangle& tri) {
 		triangles.push_back(tri);
@@ -92,7 +94,7 @@ private:
 
 class Cube {
 public:
-	Cube(const Vec3& c, double l, const Vec3& col) : centerPoint(c), sideLength(l), color(col) {
+	Cube(const Vec3& c, double l, const Vec3& col, const std::string mat) : centerPoint(c), sideLength(l), color(col), material(mat) {
 		double centerDist = sideLength / 2;
 
 		Vec3 v0((centerPoint.x - centerDist), (centerPoint.y + centerDist), (centerPoint.z - centerDist));
@@ -129,6 +131,10 @@ public:
 		triangles.push_back(Triangle(v6, v2, v7, color));
 	};
 
+	std::string getMat() const {
+		return material;
+	}
+
 	bool intersect(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
 
 		bool hit = false;
@@ -160,18 +166,23 @@ private:
 	Vec3 centerPoint;
 	double sideLength;
 	Vec3 color;
+	std::string material;
 	std::vector<Triangle> triangles;
 };
 
 class Tetrahedron {
 public:
-	Tetrahedron(const Vec3& vert0, const Vec3& vert1, const Vec3& vert2, const Vec3& vert3, Vec3& col)
-		: v0(vert0), v1(vert1), v2(vert2), v3(vert3), color(col) {
+	Tetrahedron(const Vec3& vert0, const Vec3& vert1, const Vec3& vert2, const Vec3& vert3, Vec3& col, std::string mat)
+		: v0(vert0), v1(vert1), v2(vert2), v3(vert3), color(col), material(mat) {
 		triangles.push_back(Triangle(v0, v1, v2, color));
 		triangles.push_back(Triangle(v0, v2, v3, color));
 		triangles.push_back(Triangle(v0, v3, v1, color));
 		triangles.push_back(Triangle(v1, v3, v2, color));
 	};
+
+	std::string getMat() const {
+		return material;
+	}
 
 	bool intersect(const Ray& ray, double& tHit, Vec3& outNormal, Vec3& outColor) const {
 
@@ -206,5 +217,6 @@ private:
 	Vec3 v2;
 	Vec3 v3;
 	Vec3 color;
+	std::string material;
 	std::vector<Triangle> triangles;
 };

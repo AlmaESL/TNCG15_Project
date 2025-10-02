@@ -45,54 +45,62 @@ public:
 		auto floor = std::make_shared<Plane>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
+		floor->material = "DIFFUSE";
 		addPlanes(floor);
 
 		// The wall behind the camera
 		auto leftWall = std::make_shared<Plane>();
 		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0, 1, 0)));
 		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0, 1, 0)));
+		leftWall->material = "DIFFUSE";
 		addPlanes(leftWall);
 
 		// Back wall - green
 		auto rightWall = std::make_shared<Plane>();
 		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
 		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
+		rightWall->material = "DIFFUSE";
 		addPlanes(rightWall);
 
 		// Left wall - blue
 		auto backWall = std::make_shared<Plane>();
 		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
 		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
+		backWall->material = "DIFFUSE";
 		addPlanes(backWall);
 
 		// Right wall - yellow
 		auto frontWall = std::make_shared<Plane>();
 		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(1, 1, 0)));
 		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(1, 1, 0)));
+		frontWall->material = "DIFFUSE";
 		addPlanes(frontWall);
 
 		// Ceiling - white
 		auto ceiling = std::make_shared<Plane>();
 		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.8, 0.8, 0.8)));
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
+		ceiling->material = "DIFFUSE";
 		addPlanes(ceiling);
 
-		/*
+
 		// Add a sphere to the scene
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
 		double sphereRadius = 0.9;
-		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor);
+		std::string sphereMat = "DIFFUSE";
+		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
-		*/
 
 		// Add cube to the scene
-		Vec3 cubeCenterPoint(3.5, 3.5, 0.5);
+		Vec3 cubeCenterPoint(2.5, 0, 2);
 		double cubeSideLenghts = 1.0;
-		Vec3 cubeColour(0.9, 0.3, 0.1);
-
-		auto cube = std::make_shared<Cube>(cubeCenterPoint, cubeSideLenghts, cubeColour);
+		Vec3 cubeColour(0.9, 0.9, 0.9);
+		std::string cubeMat = "MIRROR";
+		auto cube = std::make_shared<Cube>(cubeCenterPoint, cubeSideLenghts, cubeColour, cubeMat);
 		addCubes(cube);
+
+		/*
 
 		Vec3 cubeCenterPoint2(3.5, 2.5, 1.5);
 		double cubeSideLenghts2 = 1.0;
@@ -123,7 +131,7 @@ public:
 		Vec3 tetraColour(1.0, 0.5, 0.8);
 		auto tetra = std::make_shared<Tetrahedron>(tetra0, tetra1, tetra2, tetra3, tetraColour);
 		addTetrahedron(tetra);
-
+		*/
 	}
 
 	void addPlanes(const std::shared_ptr<Plane>& plane) {
