@@ -9,7 +9,7 @@ public:
 	Tracer() : tClosest(0.0), normal(Vec3(0.0,0.0,0.0)), bestNormal(Vec3(0.0, 0.0, 0.0)),
 		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {}
 
-	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor,int depth = 0, int maxDepth = 0, std::string shadingMethod = "FLAT") {
+	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor,int depth,const int& maxDepth, const std::string& shadingMethod) {
 		// Ray includes ray órigin and direction.
 		// Scene includes all objects (speheres, planes, cubes, tetrahedrons),
 		// light position, light color, light intensity, ambient color, and background color.
@@ -26,6 +26,7 @@ public:
 				tClosest = t;
 				bestNormal = n;
 				bestColor = c;
+				hitPoint = ray.origin + ray.direction * tClosest;
 				hitType = "TRIANGLE";
 				hitMaterial = obj->getMat();
 				hit = true;
@@ -54,11 +55,11 @@ public:
 		}
 
 		// Mirror reflection
-		if (hitType== "TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
+		if (hitType=="TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
-			trace(reflectRay, scene, hitColor, (depth + 1), maxDepth, shadingMethod);
+			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
 		}
 
 		// Flat shading
@@ -66,16 +67,12 @@ public:
 			hitColor = bestColor;
 			return true;
 		}
-
 		// Lambertian shading
 		if (shadingMethod == "LAMBERTIAN") {
 			if (shadowTest(ray, scene)) {
 				hitColor = (bestColor * scene.ambient);
 				return true;
 			}else {
-				// Ray's hit point with a scene surface
-				hitPoint = ray.origin + ray.direction * tClosest;
-
 				Vec3 lightVec = scene.lightPos - hitPoint;
 				Vec3 lightDir = lightVec.normalize();
 
@@ -89,15 +86,13 @@ public:
 				double intensity = scene.lightIntensity * diff / distance2;
 
 				// Compute the color of the current pixel
-				hitColor = (bestColor * ((scene.lightColor + scene.ambient) * intensity));
+				hitColor = (bestColor * ((scene.lightColor /* + scene.ambient*/) * intensity));
 				return true;
 			}
 		}
 	}
 
 	bool shadowTest(const Ray& ray, const Scene& scene) {
-		hitPoint = ray.origin + ray.direction * tClosest;
-
 		Ray sRay = Ray::shadowRay(hitPoint, scene.lightPos);
 
 		double lightDist = sRay.origin.euclDist(scene.lightPos);

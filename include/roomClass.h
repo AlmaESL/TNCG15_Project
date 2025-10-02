@@ -97,7 +97,7 @@ public:
 		std::string cubeMat = "MIRROR";
 		auto cube = std::make_shared<TriObj>();
 		cube->createCube(cubeCenterPoint, cubeSideLenghts, cubeColour);
-		cube->setMat("MIRROR");
+		cube->setMat(cubeMat);
 		addTriObj(cube);
 	}
 
