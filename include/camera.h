@@ -30,6 +30,15 @@ public:
 		return Ray(eyePos, ViewDir);
 	}
 
+	// Generate a view ray from normalized pixel coordinates u in [0,1], v in [0,1]
+	Ray generateViewRayUV(double u, double v) const {
+		Vec3 horizontal = lr - ll;
+		Vec3 vertical = ul - ll;
+		Vec3 pointOnImagePlane = ll + horizontal * u + vertical * v;
+		Vec3 ViewDir = (pointOnImagePlane - eyePos).normalize();
+		return Ray(eyePos, ViewDir);
+	}
+
 	StocasticRayGeneration generateViewRays(int n) const {
 		return StocasticRayGeneration(eyePos, n);
 	}

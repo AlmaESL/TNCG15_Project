@@ -51,6 +51,10 @@ public:
 	double radius;
 	Vec3 color;
 	std::string material;
+
+    bool isTransparent() const {
+        return material == "GLASS";
+    }
 };
 
 class TriObj {
@@ -139,6 +143,10 @@ public:
 	std::string getMat() const {
 		return material;
 	}
+
+    bool isTransparent() const {
+        return material == "GLASS";
+    }
 private:
 	std::vector<Triangle> triangles;
 	std::string material;

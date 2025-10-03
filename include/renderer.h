@@ -14,26 +14,52 @@ public:
 		std::vector<unsigned char> frameBuffer(width * height * 3);
 
 		double maxVal = 0.0;
-		int maxRays = 10;
+
+		// Max rays allowed per pixel
+		// TODO: Use this variable for MC's adaptive sampling
+		int maxRays = 10; 
+
+		// Buffer for floating point color values before tone mapping
 		std::vector<Vec3> floatBuffer(width * height);
+
+		// Tracer object
 		Tracer t;
 
 		// Iterate all pixels 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				// Single ray
-				Ray ray = camera.generateViewRay(x, y, width, height);
-				Vec3 color;
-				int maxDepth = 1;
+
+				// Supersampling: N samples per pixel 
+				const int spp = 200; 
+				// Accumulated color for the pixel from all samples
+				Vec3 accum(0.0, 0.0, 0.0);
+
+				// # of max bounces allowed for each ray
+				int maxDepth = 8;
+
+				// Shading method, flat or lambertian
+				// TODO: Implement MC 
 				std::string shadingMethod = "LAMBERTIAN";
+				for (int s = 0; s < spp; ++s) {
+					// Uniform subpixel jitter in [0,1)
+					// TODO: Update to stratified sampling through each pixel
+					double jx = ((double)std::rand() / RAND_MAX);
+					double jy = ((double)std::rand() / RAND_MAX);
+					double u = (x + jx) / width;
+					double v = 1.0 - (y + jy) / height;
+					Ray ray = camera.generateViewRayUV(u, v);
+					Vec3 color;
+					t.trace(ray, scene, color, 0, maxDepth, shadingMethod);
+					accum = accum + color;
+				}
+				// Averaging color samples through each pixel
+				Vec3 avg = accum / (double)spp;
 
-				t.trace(ray, scene, color, 0, maxDepth, shadingMethod);
+				// Make buffer of average color values
+				floatBuffer[y * width + x] = avg;
 
-
-				// Assign color to frame buffer on corresponding pixel
-				floatBuffer[y * width + x] = color;
-
-				maxVal = std::max({ maxVal, color.x, color.y, color.z });
+				// Get the max color value for the entire image plane
+				maxVal = std::max({ maxVal, avg.x, avg.y, avg.z });
 			}
 		}
 

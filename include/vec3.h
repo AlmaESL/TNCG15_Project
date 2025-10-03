@@ -32,6 +32,11 @@ struct Vec3 {
 		return Vec3(x / d, y / d, z / d);
 	}
 
+	// Comparison operator
+	bool operator== (const Vec3& v) const {
+		return (x == v.x && y == v.y && z == v.z);
+	}
+
 	double dotProduct(const Vec3& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
