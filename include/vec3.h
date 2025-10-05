@@ -37,6 +37,16 @@ struct Vec3 {
 		return (x == v.x && y == v.y && z == v.z);
 	}
 
+	// Addition assignment operator
+	Vec3& operator+= (const Vec3& v) {
+		return *this = *this + v; // Implicitly uses operator +
+	}
+
+	// Division assignment operator
+	Vec3& operator/= (double d) {
+		return *this = *this / d; // Implicitly uses operator /
+	}
+
 	double dotProduct(const Vec3& v) const {
 		return x * v.x + y * v.y + z * v.z;
 	}
