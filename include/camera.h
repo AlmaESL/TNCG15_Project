@@ -41,35 +41,35 @@ public:
 
 	// Function generating n random rays through each pixel x,y in image plane of given height and width
 	std::vector<Ray> generateRandomViewRays(int x, int y, int width, int height, int n) const {
-	
-		//Vec3 horizontal = lr - ll;
-		//Vec3 vertical = ul - ll;
 
-		//// Find the center direction of pixel
-		//double uCenter = (x + 0.5) / width;
-		//double vCenter = 1.0 - (y + 0.5) / height;
-		//Vec3 pixelCenter = ll + horizontal * uCenter + vertical * vCenter;
-
-		//// Pixel center point's forward direction
-		//Vec3 forward = (pixelCenter - eyePos).normalize();
-
-		//// Generate n random rays within a small cone around the pixel center direction --> not sure about this solution...
-		//StocasticRayGeneration raysGen(eyePos, n, forward, 0.1); 
-
-		//return raysGen.rays;
+		std::vector<Ray> rays;
+		rays.reserve(n);
 
 		Vec3 horizontal = lr - ll;
 		Vec3 vertical = ul - ll;
 
-		double uCenter = (x + 0.5) / width;
-		double vCenter = 1.0 - (y + 0.5) / height;
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, 1.0);
 
-		Vec3 pixelCenter = ll + horizontal * uCenter + vertical * vCenter;
-		Vec3 forward = (pixelCenter - eyePos).normalize();
+		// Stratified pixel sampling
+		int sqrtN = static_cast<int>(std::sqrt(n));
+		if (sqrtN * sqrtN < n) sqrtN++;
 
-		// Use the stochastic generator without cone limiting
-		StocasticRayGeneration raysGen(eyePos, n, forward);
-		return raysGen.rays;
+		for (int i = 0; i < sqrtN; ++i) {
+			for (int j = 0; j < sqrtN; ++j) {
+				if ((int)rays.size() >= n) break;
+
+				double u = (x + (i + dis(gen)) / sqrtN) / width;
+				double v = 1.0 - (y + (j + dis(gen)) / sqrtN) / height;
+
+				Vec3 pointOnImagePlane = ll + horizontal * u + vertical * v;
+				Vec3 dir = (pointOnImagePlane - eyePos).normalize();
+
+				rays.emplace_back(eyePos, dir);
+			}
+		}
+		return rays;
 	}
 
 	/*StocasticRayGeneration generateViewRays(int n) const {

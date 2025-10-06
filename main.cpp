@@ -6,17 +6,17 @@
 #include "include/renderer.h"
 
 int main() {
-	int WIDTH = 1024;
-	int HEIGHT = 1024; 
+	int WIDTH = 512;
+	int HEIGHT = 512;
 
 	using std::chrono::high_resolution_clock;
 	using std::chrono::duration_cast;
 	using std::chrono::duration;
 	using std::chrono::milliseconds;
 
-	Camera cam; 
+	Camera cam;
 	Scene scene;
-	
+
 	Renderer renderer;
 	auto t1 = high_resolution_clock::now();
 	renderer.render(scene, cam, WIDTH, HEIGHT, "test.ppm");
