@@ -39,6 +39,8 @@ public:
 		Vec3 v6(4, 4, 4);
 		Vec3 v7(0, 4, 4);
 
+		// NOTE: make sure pure colors are NEVER used as they cause issues in color calculations
+
 		// Floor - White
 		auto floor = std::make_shared<TriObj>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
@@ -48,29 +50,29 @@ public:
 
 		// The wall behind the camera
 		auto leftWall = std::make_shared<TriObj>();
-		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(1, 0, 0)));
-		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(1, 0, 0)));
+		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0.8, 0.2, 0.2)));
+		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0.8, 0.2, 0.2)));
 		leftWall->setMat("DIFFUSE");
 		addTriObj(leftWall);
 
 		// Back wall - green
 		auto rightWall = std::make_shared<TriObj>();
-		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0, 1, 0)));
-		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0, 1, 0)));
+		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0.2, 0.8, 0.2)));
+		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0.2, 0.8, 0.2)));
 		rightWall->setMat("DIFFUSE");
 		addTriObj(rightWall);
 
 		// Left wall - blue
 		auto backWall = std::make_shared<TriObj>();
-		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0, 0, 1)));
-		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0, 0, 1)));
+		backWall->addTriangle(Triangle(v0, v4, v5, Vec3(0.2, 0.2, 0.8)));
+		backWall->addTriangle(Triangle(v0, v5, v1, Vec3(0.2, 0.2, 0.8)));
 		backWall->setMat("DIFFUSE");
 		addTriObj(backWall);
 
 		// Right wall - yellow
 		auto frontWall = std::make_shared<TriObj>();
-		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(1, 1, 0)));
-		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(1, 1, 0)));
+		frontWall->addTriangle(Triangle(v3, v2, v6, Vec3(0.8, 0.8, 0.2)));
+		frontWall->addTriangle(Triangle(v3, v6, v7, Vec3(0.8, 0.8, 0.2)));
 		frontWall->setMat("DIFFUSE");
 		addTriObj(frontWall);
 
@@ -80,7 +82,6 @@ public:
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
 		ceiling->setMat("DIFFUSE");
 		addTriObj(ceiling);
-
 
 		// Add a sphere to the scene
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
@@ -101,6 +102,8 @@ public:
 		addTriObj(cube);
 	}
 
+
+	// Add objects to scene
 	void addTriObj(const std::shared_ptr<TriObj>& obj) {
 		objs.push_back(obj);
 	}

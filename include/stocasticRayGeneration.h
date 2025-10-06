@@ -11,49 +11,66 @@
 
 class StocasticRayGeneration {
 public:
-	std::vector<Ray> rays;
+    std::vector<Ray> rays;
 
-	// Generate n random rays distributed by cosine-weighted CDF
-	StocasticRayGeneration(const Vec3& o, int n, const Vec3& forward) {
-		origin = o;
+    // Generate n random rays distributed by cosine-weighted CDF around 'forward'
+    StocasticRayGeneration(const Vec3& o, int n, const Vec3& forward) {
+        origin = o;
 
-		// RNG
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<> dis(0.0, 1.0);
+        // RNG: use a local generator
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> dis(0.0, 1.0);
 
-		// Build orthonormal basis
-		Vec3 F = forward.normalize();
-		Vec3 up = (std::abs(F.y) < 0.999) ? Vec3(0.0, 1.0, 0.0) : Vec3(1.0, 0.0, 0.0);
-		Vec3 T = up.crossProduct(F).normalize();
-		Vec3 B = F.crossProduct(T).normalize();
+		// Build orthonormal basis for random sampling on local hemisphere
+        Vec3 w = forward.normalize();
 
-		// Stratify
-		int sqrtN = static_cast<int>(std::sqrt(n));
-		if (sqrtN * sqrtN < n) sqrtN++;
+		// Smaller than 0.999 to avoid numerical instability when forward is (0,1,0)
+        Vec3 up = (std::abs(w.y) < 0.999) ? Vec3(0.0, 1.0, 0.0) : Vec3(1.0, 0.0, 0.0);
+        Vec3 u = up.crossProduct(w).normalize(); // tangent
+        Vec3 v = w.crossProduct(u).normalize();  // bitangent
 
-		for (int i = 0; i < sqrtN; ++i) {
-			for (int j = 0; j < sqrtN; ++j) {
-				double u = (i + dis(gen)) / sqrtN;
-				double v = (j + dis(gen)) / sqrtN;
+        // Stratify with sqrt(n) --> TODO: test other strata
+        int sqrtN = static_cast<int>(std::sqrt(n));
+        if (sqrtN * sqrtN < n) sqrtN++;
 
-				// Cosine-weighted hemisphere sampling (CDF-based)
-				double phi = 2.0 * M_PI * u;
-				double theta = std::acos(std::sqrt(1.0 - v));  // CDF-based theta
+		// Loop strata and generate random samples
+        for (int i = 0; i < sqrtN; ++i) {
+            for (int j = 0; j < sqrtN; ++j) {
 
-				double lx = std::sin(theta) * std::cos(phi);
-				double ly = std::sin(theta) * std::sin(phi);
-				double lz = std::cos(theta);
+				// Stop if we have enough samples
+                if ((int)rays.size() >= n) {
+                    break;
+                } 
 
-				Vec3 worldDir = (T * lx + B * ly + F * lz).normalize();
-				rays.emplace_back(origin, worldDir);
+                // Stratified samples in [0,1)
+                double u1 = (i + dis(gen)) / double(sqrtN);
+                double u2 = (j + dis(gen)) / double(sqrtN);
 
-				if ((int)rays.size() >= n) break;
-			}
-			if ((int)rays.size() >= n) break;
-		}
-	}
+                // Cosine-weighted hemisphere sampling (CDF)
+                double r = std::sqrt(u1);
+                double phi = 2.0 * M_PI * u2;
+
+                // Convert local cartesian to local spherical
+                double lx = r * std::cos(phi);
+                double ly = r * std::sin(phi);
+                double lz = std::sqrt(std::max(0.0, 1.0 - u1)); // sqrt(1-u1)
+
+				// Convert to world space direction from local spherical
+                Vec3 worldDir = (u * lx + v * ly + w * lz).normalize();
+                rays.emplace_back(origin, worldDir);
+
+                // Break if n samples is reached
+                if ((int)rays.size() >= n) {
+                    break;
+                } 
+            }
+            if ((int)rays.size() >= n) {
+                break;
+            }
+        }
+    }
 
 private:
-	Vec3 origin;
+    Vec3 origin;
 };
