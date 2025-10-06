@@ -16,8 +16,9 @@ public:
 		// light position, light color, light intensity, ambient color, and background color.
 		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
 
+		// Test needed for Whitted ray termination
 		if (depth >= maxDepth) {
-			hitColor = bestColor; 
+			hitColor = bestColor;
 			return true;
 		}
 
@@ -69,16 +70,24 @@ public:
 		}
 
 		// Sphere Fresnel reflection + refraction (only for transparent materials)
-		if (hitType == "SPHERE" && (depth < maxDepth)) {
+		if (hitType == "SPHERE" && hitMaterial == "GLASS" && (depth < maxDepth)) {
+
+			// Refraction index for glass is [1.5,1.9]
 			double refrIdx = 1.5;
+
+			// Determine if the ray is inside or outside the surface
 			bool frontFace = ray.direction.dotProduct(bestNormal) < 0.0;
 
+			// Intitalize normal n and eta ratio (refrIdx1 / refrIdx2 for snell's law)
 			double etaRatio;
 			Vec3 n;
+
+			// If the ray is outside the surface, eta is air / material refrIdx
 			if (frontFace) {
 				etaRatio = 1.0 / refrIdx;
 				n = bestNormal;
 			}
+			// If the ray is inside the surface, eta is material refrIdx / air
 			else {
 				etaRatio = refrIdx / 1.0;
 				n = bestNormal * (-1.0);
@@ -87,6 +96,8 @@ public:
 			// Use the chosen normal and clamp cosTheta to [0,1]
 			double cosTheta = -1.0 * ray.direction.dotProduct(n);
 			cosTheta = std::max(0.0, std::min(1.0, cosTheta));
+
+			// Schlick refelectance to get the reflection coefficent 
 			double R = schlickReflectance(cosTheta, refrIdx);
 
 			// Randomly choose reflection or refraction using Fresnel R
@@ -94,13 +105,14 @@ public:
 
 			// Choose reflection if random num smaller than R
 			if (rnd < R) {
+
+				// Reflect ray direction around normal
 				Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 				Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 				Ray reflectRay = Ray(reflectOrigin, reflectDir);
 				return trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod);
-
-				// Choose refraction if random num larger than R
 			}
+			// Choose refraction if random num larger than R
 			else {
 				Vec3 refractDir = refractRay(ray.direction, n, etaRatio);
 				// If total internal reflection, fall back to reflection
@@ -124,61 +136,135 @@ public:
 			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
 		}
 
-		// Flat shading
+		/// Flat shading
 		if (shadingMethod == "FLAT") {
 			std::cout << "hi" << std::endl;
 			hitColor = bestColor;
 			return true;
 		}
-		// Lambertian shading
+
+		/// Lambertian shading
 		if (shadingMethod == "LAMBERTIAN") {
-			//if (shadowTest(ray, scene)) {
-			//	hitColor = (bestColor * scene.ambient);
-			//	return true;
-			//} else {
-			//	Vec3 lightVec = scene.lightPos - hitPoint;
-			//	Vec3 lightDir = lightVec.normalize();
-
-			//	// Lambertian relection factor
-			//	double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
-			//	// Compute squared distance from light source to intersection surface point - squared distance since light
-			//	// intesnity decreases by squared distance
-			//	double distance2 = lightVec.dotProduct(lightVec);
-
-			//	// Intensity of the reflection
-			//	double intensity = scene.lightIntensity * diff / distance2;
-
-			//	// Compute the color of the current pixel (ambient + direct)
-			//	hitColor = bestColor * ((scene.lightColor * intensity) + scene.ambient);
-			//	return true;
-			//}
-
-
-
-			/*StocasticRayGeneration hemiSampler(hitPoint, 2, bestNormal);
-			Vec3 accum(0.0);
-
-			for (const Ray& r : hemiSampler.rays) {
-				Vec3 indirect;
-				trace(r, scene, indirect, depth + 1, maxDepth, shadingMethod);
-				accum = accum + indirect;
+			if (shadowTest(ray, scene)) {
+				hitColor = (bestColor * scene.ambient);
+				return true;
 			}
-			hitColor = bestColor * (accum / double(2));
-			return true;*/
+			else {
+				Vec3 lightVec = scene.lightPos - hitPoint;
+				Vec3 lightDir = lightVec.normalize();
+
+				// Lambertian relection factor
+				double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
+				// Compute squared distance from light source to intersection surface point - squared distance since light
+				// intesnity decreases by squared distance
+				double distance2 = lightVec.dotProduct(lightVec);
+
+				// Intensity of the reflection
+				double intensity = scene.lightIntensity * diff / distance2;
+
+				// Compute the color of the current pixel (ambient + direct)
+				hitColor = bestColor * ((scene.lightColor * intensity) + scene.ambient);
+				return true;
+			}
+			return true;
+		}
 
 
-			int hemiRays = 8; 
-			StocasticRayGeneration hemiSampler(hitPoint, hemiRays, bestNormal);
-			Vec3 accum(0.0);
+		/// MC Tracing 
+		if (shadingMethod == "MC") {
 
-			for (const Ray& r : hemiSampler.rays) {
-				Vec3 indirect;
-				trace(r, scene, indirect, depth + 1, maxDepth, shadingMethod);
-				accum = accum + indirect;
+			// Color of the surface, used when multiplying incoming light
+			Vec3 albedo = bestColor;
+
+			// For importance sampling of direct light, we do one direct shadow ray test
+			Vec3 directLighting(0.0);
+
+			// Sample the light directly, treating light as a point
+			Vec3 toLight = scene.lightPos - hitPoint;
+			double dist2 = toLight.dotProduct(toLight);
+			Vec3 lightDir = toLight.normalize();
+
+			// Shadow ray to check visibility, small offset to avoid self-intersection
+			Ray shadowRay(hitPoint + bestNormal * 1e-4, lightDir);
+			// Occulusion bool
+			bool occluded = false;
+
+			// Iterate all objects in the scene and test for occlusion
+			for (const auto& obj : scene.objs) {
+				double t; Vec3 n, c;
+				if (obj->intersect(shadowRay, t, n, c) && t * t < dist2) {
+					occluded = true; break;
+				}
+			}
+			for (const auto& s : scene.spheres) {
+				double ts = s->RaySphereIntersection(shadowRay);
+				if (ts > 0.0 && ts * ts < dist2) {
+					occluded = true; break;
+				}
 			}
 
-			// Average indirect contribution
-			hitColor = (accum / double(hemiSampler.rays.size())) * bestColor;
+			if (!occluded) {
+				// Lambertian term
+				double NdotL = std::max(0.0, bestNormal.dotProduct(lightDir));
+
+				// Incident irradiance from point light - intensity decreases with squared distance
+				Vec3 irradiance = scene.lightColor * (scene.lightIntensity / dist2);
+
+				// Get the direct light contribution
+				directLighting = albedo * irradiance * NdotL;
+			}
+
+			// Indirect lighting uses hemisphere cosine-weighted sample --> this has to be same as maxDepth in
+			// Renderer.h --> TODO: Fix this so we only have to change in one place
+			const int rrDepth = 8;
+
+			// Sample new ray direction using CDF hemisphere sampling
+			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
+
+			// Take the first ray only - single sample per bounce (can have deeper ray trees later)
+			Ray newRay = sampler.rays[0];
+
+			// Intitialize incoming color
+			Vec3 incoming;
+
+			// Recursively trace for all rays
+			bool hitSomething = trace(newRay, scene, incoming, depth + 1, maxDepth, shadingMethod);
+
+			// If no hit, incoming color is background color
+			if (!hitSomething) {
+				incoming = scene.backgroundColor;
+			}
+
+			// Initialize survival probability for Russian roulette
+			double survivalProb = 1.0;
+
+			// Start Russian roulette after some depth to terminate low-contribution paths
+			if (depth >= rrDepth) {
+
+				// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
+				double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
+
+				// Clamp survival probability to avoid too many terminated paths
+				survivalProb = std::min(0.95, maxAlbedo);
+
+				// Generate random number and terminate if above survival probability
+				static thread_local std::mt19937 rrGen(std::random_device{}());
+				std::uniform_real_distribution<double> urnif(0.0, 1.0);
+
+				// Ray termination = setting hit color to direct light only
+				if (urnif(rrGen) >= survivalProb) {
+					hitColor = directLighting;
+					return true;
+				}
+			}
+
+			// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
+			Vec3 indirectLighting = albedo * incoming;
+			if (depth >= rrDepth && survivalProb > 0.0)
+				indirectLighting = indirectLighting / survivalProb;
+
+			// Combine direcr and indirect light contributions
+			hitColor = directLighting + indirectLighting;
 			return true;
 		}
 	}

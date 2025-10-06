@@ -28,6 +28,7 @@ public:
 
 		// Request at least 4 threads
 		unsigned int numThreads = requestedThreads > 0 ? requestedThreads : 4u;
+		std::cout << "number of threads: " << numThreads << std::endl;
 
 		std::cout << "Available threads: " << numThreads << "\n";
 
@@ -42,10 +43,12 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 8;
-		const int maxDepth = 4; // Max number of bounced allowed for each ray
+		const int spp = 16;
+		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
-		const std::string shadingMethod = "LAMBERTIAN";
+		const std::string shadingMethod = "MC";
+		/*const std::string shadingMethod = "LAMBERTIAN";
+		const std::string shadingMethod = "FLAT";*/
 
 		// Iterate all threads
 		for (unsigned int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {

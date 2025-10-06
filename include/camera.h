@@ -42,37 +42,48 @@ public:
 	// Function generating n random rays through each pixel x,y in image plane of given height and width
 	std::vector<Ray> generateRandomViewRays(int x, int y, int width, int height, int n) const {
 
+		// Reserve space for rays
 		std::vector<Ray> rays;
 		rays.reserve(n);
 
+		// Image plane basis vectors
 		Vec3 horizontal = lr - ll;
 		Vec3 vertical = ul - ll;
 
+		// Local rand generator
 		std::random_device rd;
 		std::mt19937 gen(rd());
 		std::uniform_real_distribution<> dis(0.0, 1.0);
 
 		// Stratified pixel sampling
 		int sqrtN = static_cast<int>(std::sqrt(n));
-		if (sqrtN * sqrtN < n) sqrtN++;
 
+		// If n is not a perfect square, increase strata by 1
+		if (sqrtN * sqrtN < n) {
+			sqrtN++;
+		}
+
+
+		// Iterate strata and generate random samples
 		for (int i = 0; i < sqrtN; ++i) {
 			for (int j = 0; j < sqrtN; ++j) {
-				if ((int)rays.size() >= n) break;
 
+				if ((int)rays.size() >= n) {
+					break;
+				}
+
+				// Get random sample directions within the pixel strata
 				double u = (x + (i + dis(gen)) / sqrtN) / width;
 				double v = 1.0 - (y + (j + dis(gen)) / sqrtN) / height;
 
+				// Generate ray through the random pixel location
 				Vec3 pointOnImagePlane = ll + horizontal * u + vertical * v;
 				Vec3 dir = (pointOnImagePlane - eyePos).normalize();
 
+				// Add shot ray to ray list
 				rays.emplace_back(eyePos, dir);
 			}
 		}
 		return rays;
 	}
-
-	/*StocasticRayGeneration generateViewRays(int n) const {
-		return StocasticRayGeneration(eyePos, n);
-	}*/
 };
