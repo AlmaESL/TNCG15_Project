@@ -20,10 +20,6 @@ public:
 		// Max color value for entire image, used for tone mapping
 		double maxVal = 0.0;
 
-		// Max rays allowed per pixel
-		// TODO: Use this variable for MC's adaptive sampling
-		int maxRays = 10; 
-
 		// Buffer for floating point color values before tone mapping
 		std::vector<Vec3> floatBuffer(width * height);
 
@@ -44,7 +40,7 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 200;
+		const int spp = 100;
 		const int maxDepth = 8; // Max number of bounced allowed for each ray
 
 		const std::string shadingMethod = "LAMBERTIAN";
@@ -53,6 +49,7 @@ public:
 		for (unsigned int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {
 			int startY = (int)threadIndex * rowsPerThread;
 			int endY = std::min(height, startY + rowsPerThread);
+
 			if (startY >= endY) {
 				continue;
 			}
@@ -62,34 +59,25 @@ public:
 			workers.emplace_back([&, startY, endY, threadIndex]() {
 
 				// Thread-local RNG to avoid data races from std::rand()
-				std::random_device rd;
-				std::mt19937 rng(rd() ^ ((unsigned int)startY + (unsigned int)width * 73856093u) ^ (unsigned int)threadIndex);
-				std::uniform_real_distribution<double> jitter01(0.0, 1.0);
 				Tracer tracer;
 				double localMax = 0.0;
 
 				// Iterate all pixels in each thread's row block  
 				for (int y = startY; y < endY; ++y) {
 					for (int x = 0; x < width; ++x) {
+
 						Vec3 accumulatedColor(0.0, 0.0, 0.0);
-						for (int sample = 0; sample < spp; ++sample) {
 
-							// Jittered sampling means that we add a small random offset to each pixel coordinate 
-							// to get a sub-pixel location
-							double jx = jitter01(rng);
-							double jy = jitter01(rng);
+						// Generate spp MC rays per pixel
+						auto pixelRays = camera.generateRandomViewRays(x, y, width, height, spp);
 
-							// u and v are the normalized pixel coordinates in [0,1], ie local pixel coordinates
-							double u = (x + jx) / width;
-							double v = 1.0 - (y + jy) / height;
+						// Trace each ray and compute its accumulated color contribution
+						for (const Ray& ray : pixelRays) {
 
-							// Generate the view ray for the pixel with local coordinates
-							Ray ray = camera.generateViewRayUV(u, v);
 							Vec3 sampleColor;
 							tracer.trace(ray, scene, sampleColor, 0, maxDepth, shadingMethod);
-
-							// Accumulate the color from each sample through each pixel
 							accumulatedColor = accumulatedColor + sampleColor;
+
 						}
 
 						// Average all color contributions from the samples within each pixel
@@ -100,11 +88,11 @@ public:
 				}
 				// Store the local max color value for current thread
 				perThreadMax[threadIndex] = localMax;
-			});
+				});
 		}
 
 		// Wait for all threads to finish
-		for (std::thread &worker : workers) {
+		for (std::thread& worker : workers) {
 			if (worker.joinable()) {
 				worker.join();
 			}

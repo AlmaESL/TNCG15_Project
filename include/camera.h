@@ -39,7 +39,40 @@ public:
 		return Ray(eyePos, ViewDir);
 	}
 
-	StocasticRayGeneration generateViewRays(int n) const {
-		return StocasticRayGeneration(eyePos, n);
+	// Function generating n random rays through each pixel x,y in image plane of given height and width
+	std::vector<Ray> generateRandomViewRays(int x, int y, int width, int height, int n) const {
+	
+		//Vec3 horizontal = lr - ll;
+		//Vec3 vertical = ul - ll;
+
+		//// Find the center direction of pixel
+		//double uCenter = (x + 0.5) / width;
+		//double vCenter = 1.0 - (y + 0.5) / height;
+		//Vec3 pixelCenter = ll + horizontal * uCenter + vertical * vCenter;
+
+		//// Pixel center point's forward direction
+		//Vec3 forward = (pixelCenter - eyePos).normalize();
+
+		//// Generate n random rays within a small cone around the pixel center direction --> not sure about this solution...
+		//StocasticRayGeneration raysGen(eyePos, n, forward, 0.1); 
+
+		//return raysGen.rays;
+
+		Vec3 horizontal = lr - ll;
+		Vec3 vertical = ul - ll;
+
+		double uCenter = (x + 0.5) / width;
+		double vCenter = 1.0 - (y + 0.5) / height;
+
+		Vec3 pixelCenter = ll + horizontal * uCenter + vertical * vCenter;
+		Vec3 forward = (pixelCenter - eyePos).normalize();
+
+		// Use the stochastic generator without cone limiting
+		StocasticRayGeneration raysGen(eyePos, n, forward);
+		return raysGen.rays;
 	}
+
+	/*StocasticRayGeneration generateViewRays(int n) const {
+		return StocasticRayGeneration(eyePos, n);
+	}*/
 };
