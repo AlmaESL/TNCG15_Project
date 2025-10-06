@@ -40,8 +40,8 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 100;
-		const int maxDepth = 8; // Max number of bounced allowed for each ray
+		const int spp = 8;
+		const int maxDepth = 4; // Max number of bounced allowed for each ray
 
 		const std::string shadingMethod = "LAMBERTIAN";
 
@@ -71,7 +71,6 @@ public:
 						// Generate spp MC rays per pixel
 						auto pixelRays = camera.generateRandomViewRays(x, y, width, height, spp);
 
-						// Trace each ray and compute its accumulated color contribution
 						for (const Ray& ray : pixelRays) {
 
 							Vec3 sampleColor;

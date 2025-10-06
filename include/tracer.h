@@ -6,14 +6,20 @@
 
 class Tracer {
 public:
-	Tracer() : tClosest(0.0), normal(Vec3(0.0,0.0,0.0)), bestNormal(Vec3(0.0, 0.0, 0.0)),
-		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {}
+	Tracer() : tClosest(0.0), normal(Vec3(0.0, 0.0, 0.0)), bestNormal(Vec3(0.0, 0.0, 0.0)),
+		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {
+	}
 
-	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor,int depth,const int& maxDepth, const std::string& shadingMethod) {
-		// Ray includes ray �rigin and direction.
+	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor, int depth, const int& maxDepth, const std::string& shadingMethod) {
+		// Ray includes ray origin and direction.
 		// Scene includes all objects (speheres, planes, cubes, tetrahedrons),
 		// light position, light color, light intensity, ambient color, and background color.
 		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
+
+		if (depth >= maxDepth) {
+			hitColor = bestColor; 
+			return true;
+		}
 
 		// Initilize values related to ray intersection
 		bool hit = false;
@@ -72,7 +78,8 @@ public:
 			if (frontFace) {
 				etaRatio = 1.0 / refrIdx;
 				n = bestNormal;
-			} else {
+			}
+			else {
 				etaRatio = refrIdx / 1.0;
 				n = bestNormal * (-1.0);
 			}
@@ -84,16 +91,17 @@ public:
 
 			// Randomly choose reflection or refraction using Fresnel R
 			double rnd = (double)std::rand() / RAND_MAX;
-			
+
 			// Choose reflection if random num smaller than R
 			if (rnd < R) {
 				Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 				Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 				Ray reflectRay = Ray(reflectOrigin, reflectDir);
 				return trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod);
-			
+
 				// Choose refraction if random num larger than R
-			} else {
+			}
+			else {
 				Vec3 refractDir = refractRay(ray.direction, n, etaRatio);
 				// If total internal reflection, fall back to reflection
 				if (refractDir.getLength() <= 0.0) {
@@ -109,7 +117,7 @@ public:
 		}
 
 		// Mirror reflection with triangle object
-		if (hitType=="TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
+		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
@@ -118,31 +126,60 @@ public:
 
 		// Flat shading
 		if (shadingMethod == "FLAT") {
+			std::cout << "hi" << std::endl;
 			hitColor = bestColor;
 			return true;
 		}
 		// Lambertian shading
 		if (shadingMethod == "LAMBERTIAN") {
-			if (shadowTest(ray, scene)) {
-				hitColor = (bestColor * scene.ambient);
-				return true;
-			} else {
-				Vec3 lightVec = scene.lightPos - hitPoint;
-				Vec3 lightDir = lightVec.normalize();
+			//if (shadowTest(ray, scene)) {
+			//	hitColor = (bestColor * scene.ambient);
+			//	return true;
+			//} else {
+			//	Vec3 lightVec = scene.lightPos - hitPoint;
+			//	Vec3 lightDir = lightVec.normalize();
 
-				// Lambertian relection factor
-				double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
-				// Compute squared distance from light source to intersection surface point - squared distance since light
-				// intesnity decreases by squared distance
-				double distance2 = lightVec.dotProduct(lightVec);
+			//	// Lambertian relection factor
+			//	double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
+			//	// Compute squared distance from light source to intersection surface point - squared distance since light
+			//	// intesnity decreases by squared distance
+			//	double distance2 = lightVec.dotProduct(lightVec);
 
-				// Intensity of the reflection
-				double intensity = scene.lightIntensity * diff / distance2;
+			//	// Intensity of the reflection
+			//	double intensity = scene.lightIntensity * diff / distance2;
 
-				// Compute the color of the current pixel (ambient + direct)
-				hitColor = bestColor * ((scene.lightColor * intensity) + scene.ambient);
-				return true;
+			//	// Compute the color of the current pixel (ambient + direct)
+			//	hitColor = bestColor * ((scene.lightColor * intensity) + scene.ambient);
+			//	return true;
+			//}
+
+
+
+			/*StocasticRayGeneration hemiSampler(hitPoint, 2, bestNormal);
+			Vec3 accum(0.0);
+
+			for (const Ray& r : hemiSampler.rays) {
+				Vec3 indirect;
+				trace(r, scene, indirect, depth + 1, maxDepth, shadingMethod);
+				accum = accum + indirect;
 			}
+			hitColor = bestColor * (accum / double(2));
+			return true;*/
+
+
+			int hemiRays = 8; 
+			StocasticRayGeneration hemiSampler(hitPoint, hemiRays, bestNormal);
+			Vec3 accum(0.0);
+
+			for (const Ray& r : hemiSampler.rays) {
+				Vec3 indirect;
+				trace(r, scene, indirect, depth + 1, maxDepth, shadingMethod);
+				accum = accum + indirect;
+			}
+
+			// Average indirect contribution
+			hitColor = (accum / double(hemiSampler.rays.size())) * bestColor;
+			return true;
 		}
 	}
 
@@ -196,9 +233,10 @@ public:
 		double sin2Theta = 1.0 - (cosTheta * cosTheta);
 		double k = 1.0 - (eta * eta * sin2Theta);
 
-		if (k < 0){
-			return Vec3(0.0,0.0,0.0);
-		}else {
+		if (k < 0) {
+			return Vec3(0.0, 0.0, 0.0);
+		}
+		else {
 			return (dir * eta) + n * (eta * cosTheta - sqrt(k));
 		}
 	}
