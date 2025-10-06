@@ -29,6 +29,8 @@ public:
 		// Request at least 4 threads
 		unsigned int numThreads = requestedThreads > 0 ? requestedThreads : 4u;
 
+		std::cout << "Available threads: " << numThreads << "\n";
+
 		// Divide the image into blocks of rows for each thread
 		int rowsPerThread = (height + (int)numThreads - 1) / (int)numThreads;
 
