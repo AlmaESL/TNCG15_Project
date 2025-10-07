@@ -17,7 +17,7 @@ public:
 		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
 
 		// Test needed for Whitted ray termination
-		if (depth >= maxDepth && shadingMethod != "MC") {
+		if (depth >= maxDepth) {
 			hitColor = bestColor;
 			return true;
 		}
@@ -192,7 +192,7 @@ public:
 			for (size_t i = 0; i < sampler.rays.size(); ++i) {
 				// Check if new ray, intersects the area light source
 				bool directLightHit = false;
-				for (const auto& obj : scene.lightSources) {
+				for (const auto& obj : scene.objs) {
 					double t; Vec3 n, c;
 					if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t, n, c)) {
 						directLightHit = true; 
@@ -254,7 +254,7 @@ public:
 				double survivalProb = 1.0;
 
 				// Start Russian roulette after some depth to terminate low-contribution paths
-				if (depth >= rrDepth) {
+				if (depth >= (rrDepth -1)) {
 
 					// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
 					double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
@@ -275,7 +275,7 @@ public:
 
 				// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
 				Vec3 indirectLighting = albedo * incoming;
-				if (depth >= rrDepth && survivalProb > 0.0)
+				if (depth >= (rrDepth - 1) && survivalProb > 0.0)
 					indirectLighting = indirectLighting / survivalProb;
 
 				// Combine direcr and indirect light contributions

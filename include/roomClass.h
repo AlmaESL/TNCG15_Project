@@ -22,9 +22,9 @@ public:
 	std::vector<std::shared_ptr<TriObj>> lightSources;
 
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
-	Vec3 lightPos = Vec3(2, 2, 3.9);
+	Vec3 lightPos = Vec3(2, 2, 3.8);
 	Vec3 lightColor = Vec3(1, 1, 1);
-	double lightIntensity = 300.0;
+	double lightIntensity = 400.0;
 	double ambient = 0.5;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
@@ -46,17 +46,17 @@ public:
 		auto ceilingLight = std::make_shared<TriObj>();
 
 		// Set up vertices based on the specified light position, area light size specifes size of the area light
-		double areaLightSize = 0.2;
+		double areaLightSize = 0.5;
 		Vec3 lightV0(lightPos.x - areaLightSize, lightPos.y - areaLightSize, lightPos.z);
 		Vec3 lightV1(lightPos.x - areaLightSize, lightPos.y + areaLightSize, lightPos.z);
 		Vec3 lightV2(lightPos.x + areaLightSize, lightPos.y - areaLightSize, lightPos.z);
 		Vec3 lightV3(lightPos.x + areaLightSize, lightPos.y + areaLightSize, lightPos.z);
 
 		// Triangles lie flat on the z-plane
-		ceilingLight->addTriangle(Triangle(lightV0, lightV1, lightV3, Vec3(0.95, 0.95, 0.95)));
-		ceilingLight->addTriangle(Triangle(lightV0, lightV3, lightV2, Vec3(0.95, 0.95, 0.95)));
+		ceilingLight->addTriangle(Triangle(lightV0, lightV1, lightV3, Vec3(1.0, 1.0, 1.0)));
+		ceilingLight->addTriangle(Triangle(lightV0, lightV3, lightV2, Vec3(1.0, 0.95, 1.0)));
 		ceilingLight->setMat("EMISSIVE");
-		addLightSources(ceilingLight);
+		addTriObj(ceilingLight);
 
 		// Floor - White
 		auto floor = std::make_shared<TriObj>();
