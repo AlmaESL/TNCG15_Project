@@ -17,7 +17,7 @@ public:
 		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
 
 		// Test needed for Whitted ray termination
-		if (depth >= maxDepth) {
+		if (depth >= maxDepth && shadingMethod != "MC") {
 			hitColor = bestColor;
 			return true;
 		}
@@ -145,7 +145,7 @@ public:
 
 		/// Lambertian shading
 		if (shadingMethod == "LAMBERTIAN") {
-			if (shadowTest(ray, scene)) {
+			if (shadowTest(scene)) {
 				hitColor = (bestColor * scene.ambient);
 				return true;
 			}
@@ -166,7 +166,6 @@ public:
 				hitColor = bestColor * ((scene.lightColor * intensity) + scene.ambient);
 				return true;
 			}
-			return true;
 		}
 
 
@@ -179,98 +178,117 @@ public:
 			// For importance sampling of direct light, we do one direct shadow ray test
 			Vec3 directLighting(0.0);
 
-			// Sample the light directly, treating light as a point
-			Vec3 toLight = scene.lightPos - hitPoint;
-			double dist2 = toLight.dotProduct(toLight);
-			Vec3 lightDir = toLight.normalize();
-
-			// Shadow ray to check visibility, small offset to avoid self-intersection
-			Ray shadowRay(hitPoint + bestNormal * 1e-4, lightDir);
-			// Occulusion bool
-			bool occluded = false;
-
-			// Iterate all objects in the scene and test for occlusion
-			for (const auto& obj : scene.objs) {
-				double t; Vec3 n, c;
-				if (obj->intersect(shadowRay, t, n, c) && t * t < dist2) {
-					occluded = true; break;
-				}
-			}
-			for (const auto& s : scene.spheres) {
-				double ts = s->RaySphereIntersection(shadowRay);
-				if (ts > 0.0 && ts * ts < dist2) {
-					occluded = true; break;
-				}
-			}
-
-			if (!occluded) {
-				// Lambertian term
-				double NdotL = std::max(0.0, bestNormal.dotProduct(lightDir));
-
-				// Incident irradiance from point light - intensity decreases with squared distance
-				Vec3 irradiance = scene.lightColor * (scene.lightIntensity / dist2);
-
-				// Get the direct light contribution
-				directLighting = albedo * irradiance * NdotL;
-			}
-
 			// Indirect lighting uses hemisphere cosine-weighted sample --> this has to be same as maxDepth in
-			// Renderer.h --> TODO: Fix this so we only have to change in one place
-			const int rrDepth = 8;
+			// Renderer.h --> TODO: Fix this so we only have to change in one place, should only be to set this to max depth
+			const int rrDepth = maxDepth;
 
 			// Sample new ray direction using CDF hemisphere sampling
 			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
 
 			// Take the first ray only - single sample per bounce (can have deeper ray trees later)
-			Ray newRay = sampler.rays[0];
+			//Ray newRay = sampler.rays[0];
 
-			// Intitialize incoming color
-			Vec3 incoming;
-
-			// Recursively trace for all rays
-			bool hitSomething = trace(newRay, scene, incoming, depth + 1, maxDepth, shadingMethod);
-
-			// If no hit, incoming color is background color
-			if (!hitSomething) {
-				incoming = scene.backgroundColor;
-			}
-
-			// Initialize survival probability for Russian roulette
-			double survivalProb = 1.0;
-
-			// Start Russian roulette after some depth to terminate low-contribution paths
-			if (depth >= rrDepth) {
-
-				// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
-				double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
-
-				// Clamp survival probability to avoid too many terminated paths
-				survivalProb = std::min(0.95, maxAlbedo);
-
-				// Generate random number and terminate if above survival probability
-				static thread_local std::mt19937 rrGen(std::random_device{}());
-				std::uniform_real_distribution<double> urnif(0.0, 1.0);
-
-				// Ray termination = setting hit color to direct light only
-				if (urnif(rrGen) >= survivalProb) {
-					hitColor = directLighting;
-					return true;
+			// Check all the rays from sampler
+			for (size_t i = 0; i < sampler.rays.size(); ++i) {
+				// Check if new ray, intersects the area light source
+				bool directLightHit = false;
+				for (const auto& obj : scene.lightSources) {
+					double t; Vec3 n, c;
+					if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t, n, c)) {
+						directLightHit = true; 
+						break;
+					}
 				}
+
+				if (directLightHit) {
+					// Sample the light directly, treating light as a point
+					Vec3 toLight = sampler.rays[i].direction;
+					double dist2 = toLight.dotProduct(toLight);
+					Vec3 lightDir = toLight.normalize();
+
+					// Shadow ray to check visibility, small offset to avoid self-intersection
+					Ray shadowRay(hitPoint + bestNormal * 1e-4, lightDir);
+					// Occulusion bool
+					bool occluded = false;
+
+					// Iterate all objects in the scene and test for occlusion
+					for (const auto& obj : scene.objs) {
+						double t; Vec3 n, c;
+						if (obj->intersect(shadowRay, t, n, c) && t * t < dist2) {
+							occluded = true;
+							break;
+						}
+					}
+					for (const auto& s : scene.spheres) {
+						double ts = s->RaySphereIntersection(shadowRay);
+						if (ts > 0.0 && ts * ts < dist2) {
+							occluded = true;
+							break;
+						}
+					}
+
+					if (!occluded) {
+						// Lambertian term
+						double NdotL = std::max(0.0, bestNormal.dotProduct(lightDir));
+
+						// Incident irradiance from point light - intensity decreases with squared distance
+						Vec3 irradiance = scene.lightColor * (scene.lightIntensity / dist2);
+
+						// Get the direct light contribution
+						directLighting = albedo * irradiance * NdotL;
+					}
+				}
+
+				// Intitialize incoming color
+				Vec3 incoming;
+
+				// Recursively trace for all rays
+				bool hitSomething = trace(sampler.rays[i], scene, incoming, depth + 1, maxDepth, shadingMethod);
+
+				// If no hit, incoming color is background color
+				if (!hitSomething) {
+					incoming = scene.backgroundColor;
+				}
+
+				// Initialize survival probability for Russian roulette
+				double survivalProb = 1.0;
+
+				// Start Russian roulette after some depth to terminate low-contribution paths
+				if (depth >= rrDepth) {
+
+					// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
+					double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
+
+					// Clamp survival probability to avoid too many terminated paths
+					survivalProb = std::min(0.95, maxAlbedo);
+
+					// Generate random number and terminate if above survival probability
+					static thread_local std::mt19937 rrGen(std::random_device{}());
+					std::uniform_real_distribution<double> urnif(0.0, 1.0);
+
+					// Ray termination = setting hit color to direct light only
+					if (urnif(rrGen) >= survivalProb) {
+						hitColor = directLighting;
+						return true;
+					}
+				}
+
+				// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
+				Vec3 indirectLighting = albedo * incoming;
+				if (depth >= rrDepth && survivalProb > 0.0)
+					indirectLighting = indirectLighting / survivalProb;
+
+				// Combine direcr and indirect light contributions
+				hitColor = directLighting + indirectLighting;
+				return true;
 			}
-
-			// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
-			Vec3 indirectLighting = albedo * incoming;
-			if (depth >= rrDepth && survivalProb > 0.0)
-				indirectLighting = indirectLighting / survivalProb;
-
-			// Combine direcr and indirect light contributions
-			hitColor = directLighting + indirectLighting;
-			return true;
 		}
+		hitColor = scene.backgroundColor;
+		return false;
 	}
 
 	// Test for shadow rays via occlusion
-	bool shadowTest(const Ray& ray, const Scene& scene) {
+	bool shadowTest(const Scene& scene) const{
 
 		// Create shadow ray from the surface hit point and the light source 
 		Ray sRay = Ray::shadowRay(hitPoint, scene.lightPos);

@@ -28,9 +28,10 @@ public:
 
 		// Request at least 4 threads
 		unsigned int numThreads = requestedThreads > 0 ? requestedThreads : 4u;
-		std::cout << "number of threads: " << numThreads << std::endl;
+		std::cout << "Available threads: " << numThreads << std::endl;
 
-		std::cout << "Available threads: " << numThreads << "\n";
+		numThreads = numThreads - 2;
+		std::cout << "Using " << numThreads << " threads" << std::endl;
 
 		// Divide the image into blocks of rows for each thread
 		int rowsPerThread = (height + (int)numThreads - 1) / (int)numThreads;
@@ -43,8 +44,8 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 16;
-		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
+		const int spp = 256;
+		const int maxDepth = 4; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
 		const std::string shadingMethod = "MC";
 		/*const std::string shadingMethod = "LAMBERTIAN";

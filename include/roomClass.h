@@ -19,9 +19,10 @@ class Scene {
 public:
 	std::vector<std::shared_ptr<TriObj>> objs;
 	std::vector<std::shared_ptr<Sphere>> spheres;
+	std::vector<std::shared_ptr<TriObj>> lightSources;
 
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
-	Vec3 lightPos = Vec3(2, 2, 3);
+	Vec3 lightPos = Vec3(2, 2, 3.9);
 	Vec3 lightColor = Vec3(1, 1, 1);
 	double lightIntensity = 300.0;
 	double ambient = 0.5;
@@ -40,6 +41,22 @@ public:
 		Vec3 v7(0, 4, 4);
 
 		// NOTE: make sure pure colors are NEVER used as they cause issues in color calculations
+
+		// Area light
+		auto ceilingLight = std::make_shared<TriObj>();
+
+		// Set up vertices based on the specified light position, area light size specifes size of the area light
+		double areaLightSize = 0.2;
+		Vec3 lightV0(lightPos.x - areaLightSize, lightPos.y - areaLightSize, lightPos.z);
+		Vec3 lightV1(lightPos.x - areaLightSize, lightPos.y + areaLightSize, lightPos.z);
+		Vec3 lightV2(lightPos.x + areaLightSize, lightPos.y - areaLightSize, lightPos.z);
+		Vec3 lightV3(lightPos.x + areaLightSize, lightPos.y + areaLightSize, lightPos.z);
+
+		// Triangles lie flat on the z-plane
+		ceilingLight->addTriangle(Triangle(lightV0, lightV1, lightV3, Vec3(0.95, 0.95, 0.95)));
+		ceilingLight->addTriangle(Triangle(lightV0, lightV3, lightV2, Vec3(0.95, 0.95, 0.95)));
+		ceilingLight->setMat("EMISSIVE");
+		addLightSources(ceilingLight);
 
 		// Floor - White
 		auto floor = std::make_shared<TriObj>();
@@ -78,8 +95,8 @@ public:
 
 		// Ceiling - white
 		auto ceiling = std::make_shared<TriObj>();
-		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.8, 0.8, 0.8)));
-		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.8, 0.8, 0.8)));
+		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.3, 0.3)));
+		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.3, 0.3)));
 		ceiling->setMat("DIFFUSE");
 		addTriObj(ceiling);
 
@@ -87,7 +104,7 @@ public:
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
 		double sphereRadius = 0.9;
-		std::string sphereMat = "DIFFUSE";
+		std::string sphereMat = "GLASS";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
 
@@ -110,6 +127,10 @@ public:
 
 	void addSphere(const std::shared_ptr<Sphere>& s) {
 		spheres.push_back(s);
+	}
+
+	void addLightSources(const std::shared_ptr<TriObj>& obj) {
+		lightSources.push_back(obj);
 	}
 
 };

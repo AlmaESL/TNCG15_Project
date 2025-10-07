@@ -6,8 +6,8 @@
 #include "include/renderer.h"
 
 int main() {
-	int WIDTH = 512;
-	int HEIGHT = 512;
+	int WIDTH = 1024;
+	int HEIGHT = 1024;
 
 	using std::chrono::high_resolution_clock;
 	using std::chrono::duration_cast;
