@@ -21,8 +21,10 @@ public:
 	std::vector<std::shared_ptr<Sphere>> spheres;
 	std::vector<std::shared_ptr<TriObj>> lightSources;
 
+	const double distToRoofOffset = 1e-4;
+
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
-	Vec3 lightPos = Vec3(2, 2, 3.8);
+	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
 	Vec3 lightColor = Vec3(1, 1, 1);
 	double lightIntensity = 400.0;
 	double ambient = 0.5;
