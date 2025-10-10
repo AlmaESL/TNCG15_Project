@@ -138,7 +138,6 @@ public:
 
 		/// Flat shading
 		if (shadingMethod == "FLAT") {
-			std::cout << "hi" << std::endl;
 			hitColor = bestColor;
 			return true;
 		}
@@ -181,61 +180,87 @@ public:
 			// Indirect lighting uses hemisphere cosine-weighted sample --> this has to be same as maxDepth in
 			// Renderer.h --> TODO: Fix this so we only have to change in one place, should only be to set this to max depth
 			const int rrDepth = maxDepth;
+			const int spp = 64;
 
 			// Sample new ray direction using CDF hemisphere sampling
-			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
-
-			// Take the first ray only - single sample per bounce (can have deeper ray trees later)
-			//Ray newRay = sampler.rays[0];
+			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, spp, bestNormal);
 
 			// Check all the rays from sampler
 			for (size_t i = 0; i < sampler.rays.size(); ++i) {
+
 				// Check if new ray, intersects the area light source
 				bool directLightHit = false;
 				for (const auto& obj : scene.objs) {
 					double t; Vec3 n, c;
 					if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t, n, c)) {
-						directLightHit = true; 
+						directLightHit = true;
 						break;
 					}
 				}
 
 				if (directLightHit) {
+					
+					double tLight = std::numeric_limits<double>::infinity();
+
+					//for (const auto& obj : scene.objs) {
+					//	double t2; Vec3 n2, c2;
+					//	if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t2, n2, c2)) {
+					//		// take the nearest emissive intersection if multiple (defensive)
+					//		if (t2 > 0.0 && t2 < tLight) tLight = t2;
+					//	}
+					//}
+
 					// Sample the light directly, treating light as a point
-					Vec3 toLight = sampler.rays[i].direction;
-					double dist2 = toLight.dotProduct(toLight);
-					Vec3 lightDir = toLight.normalize();
-
-					// Shadow ray to check visibility, small offset to avoid self-intersection
-					Ray shadowRay(hitPoint + bestNormal * 1e-4, lightDir);
-					// Occulusion bool
-					bool occluded = false;
-
-					// Iterate all objects in the scene and test for occlusion
-					for (const auto& obj : scene.objs) {
-						double t; Vec3 n, c;
-						if (obj->intersect(shadowRay, t, n, c) && t * t < dist2) {
-							occluded = true;
-							break;
-						}
+					if (tLight == std::numeric_limits<double>::infinity()) {
+						directLighting = bestColor * scene.ambient;
 					}
-					for (const auto& s : scene.spheres) {
-						double ts = s->RaySphereIntersection(shadowRay);
-						if (ts > 0.0 && ts * ts < dist2) {
-							occluded = true;
-							break;
+					else {
+						// Direction toward the light is the sampled ray's direction (already)
+						Vec3 toLightDir = sampler.rays[i].direction.normalize();
+
+						// Squared distance to emitter
+						double dist2 = tLight * tLight;
+
+						// Shadow ray to check visibility, small offset to avoid self-intersection
+						Ray shadowRay(hitPoint + bestNormal * 1e-4, toLightDir);
+
+						// Iterate all objects in the scene and test for occlusion
+						bool occluded = false;
+
+						for (const auto& obj : scene.objs) {
+							// Transparent materials don't occlude
+							if (obj->isTransparent()) continue;
+							double t3; Vec3 n3, c3;
+							if (obj->intersect(shadowRay, t3, n3, c3) && t3 > 1e-6 && t3 < tLight) {
+								occluded = true;
+								break;
+							}
 						}
-					}
 
-					if (!occluded) {
-						// Lambertian term
-						double NdotL = std::max(0.0, bestNormal.dotProduct(lightDir));
+						if (!occluded) {
+							for (const auto& s : scene.spheres) {
+								if (s->isTransparent()) continue;
+								double ts = s->RaySphereIntersection(shadowRay);
+								if (ts > 1e-6 && ts < tLight) {
+									occluded = true;
+									break;
+								}
+							}
+						}
 
-						// Incident irradiance from point light - intensity decreases with squared distance
-						Vec3 irradiance = scene.lightColor * (scene.lightIntensity / dist2);
+						if (occluded) {
+							directLighting = bestColor * scene.ambient;
+						}
+						else {
+							// Lambertian term using NdotL and light intensity / squared distance
+							double NdotL = std::max(0.0, bestNormal.dotProduct(toLightDir));
 
-						// Get the direct light contribution
-						directLighting = albedo * irradiance * NdotL;
+							// Incident irradiance from point light - intensity decreases with squared distance
+							Vec3 irradiance = scene.lightColor * (scene.lightIntensity / dist2);
+
+							// Get the direct light contribution
+							directLighting = albedo * irradiance * NdotL;
+						}
 					}
 				}
 
@@ -254,7 +279,7 @@ public:
 				double survivalProb = 1.0;
 
 				// Start Russian roulette after some depth to terminate low-contribution paths
-				if (depth >= (rrDepth -1)) {
+				if (depth >= (rrDepth - 1)) {
 
 					// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
 					double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
@@ -288,7 +313,7 @@ public:
 	}
 
 	// Test for shadow rays via occlusion
-	bool shadowTest(const Scene& scene) const{
+	bool shadowTest(const Scene& scene) const {
 
 		// Create shadow ray from the surface hit point and the light source 
 		Ray sRay = Ray::shadowRay(hitPoint, scene.lightPos);
