@@ -73,7 +73,7 @@ public:
 		if (hitType == "SPHERE" && hitMaterial == "GLASS" && (depth < maxDepth)) {
 
 			// Refraction index for glass is [1.5,1.9]
-			double refrIdx = 1.5;
+			double refrIdx = 1.9;
 
 			// Determine if the ray is inside or outside the surface
 			bool frontFace = ray.direction.dotProduct(bestNormal) < 0.0;
@@ -180,10 +180,9 @@ public:
 			// Indirect lighting uses hemisphere cosine-weighted sample --> this has to be same as maxDepth in
 			// Renderer.h --> TODO: Fix this so we only have to change in one place, should only be to set this to max depth
 			const int rrDepth = maxDepth;
-			const int spp = 64;
 
-			// Sample new ray direction using CDF hemisphere sampling
-			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, spp, bestNormal);
+			// Sample new ray direction using CDF hemisphere sampling, only 1 child ray per surface interaction
+			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
 
 			// Check all the rays from sampler
 			for (size_t i = 0; i < sampler.rays.size(); ++i) {
@@ -199,16 +198,16 @@ public:
 				}
 
 				if (directLightHit) {
-					
+
 					double tLight = std::numeric_limits<double>::infinity();
 
-					//for (const auto& obj : scene.objs) {
-					//	double t2; Vec3 n2, c2;
-					//	if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t2, n2, c2)) {
-					//		// take the nearest emissive intersection if multiple (defensive)
-					//		if (t2 > 0.0 && t2 < tLight) tLight = t2;
-					//	}
-					//}
+					for (const auto& obj : scene.objs) {
+						double t2; Vec3 n2, c2;
+						if (obj->getMat() == "EMISSIVE" && obj->intersect(sampler.rays[i], t2, n2, c2)) {
+							// take the nearest emissive intersection if multiple (defensive)
+							if (t2 > 0.0 && t2 < tLight) tLight = t2;
+						}
+					}
 
 					// Sample the light directly, treating light as a point
 					if (tLight == std::numeric_limits<double>::infinity()) {
@@ -229,7 +228,7 @@ public:
 
 						for (const auto& obj : scene.objs) {
 							// Transparent materials don't occlude
-							if (obj->isTransparent()) continue;
+							if (obj->isTransparent()) break;
 							double t3; Vec3 n3, c3;
 							if (obj->intersect(shadowRay, t3, n3, c3) && t3 > 1e-6 && t3 < tLight) {
 								occluded = true;
@@ -239,7 +238,7 @@ public:
 
 						if (!occluded) {
 							for (const auto& s : scene.spheres) {
-								if (s->isTransparent()) continue;
+								if (s->isTransparent()) break;
 								double ts = s->RaySphereIntersection(shadowRay);
 								if (ts > 1e-6 && ts < tLight) {
 									occluded = true;

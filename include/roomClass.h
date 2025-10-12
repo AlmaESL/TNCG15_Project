@@ -69,8 +69,8 @@ public:
 
 		// The wall behind the camera
 		auto leftWall = std::make_shared<TriObj>();
-		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0.8, 0.2, 0.2)));
-		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0.8, 0.2, 0.2)));
+		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0.8, 0.8, 0.8)));
+		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0.8, 0.8, 0.8)));
 		leftWall->setMat("DIFFUSE");
 		addTriObj(leftWall);
 
@@ -106,7 +106,7 @@ public:
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
 		double sphereRadius = 0.9;
-		std::string sphereMat = "DIFFUSE";
+		std::string sphereMat = "MIRROR";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
 
