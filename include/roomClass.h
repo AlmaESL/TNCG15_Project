@@ -106,7 +106,7 @@ public:
 		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
 		double sphereRadius = 0.9;
-		std::string sphereMat = "MIRROR";
+		std::string sphereMat = "DIFFUSE";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
 
