@@ -59,6 +59,8 @@ public:
 
 class TriObj {
 public:
+	std::vector<Triangle> triangles;
+
 	// Directly create triangle
 	void addTriangle(const Triangle& tri) {
 		triangles.push_back(tri);
@@ -148,6 +150,6 @@ public:
         return material == "GLASS";
     }
 private:
-	std::vector<Triangle> triangles;
+	
 	std::string material;
 };

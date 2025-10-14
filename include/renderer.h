@@ -45,7 +45,7 @@ public:
 
 		// Rendering parameters
 		const int spp = 256;
-		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
+		const int maxDepth = 16; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
 		const std::string shadingMethod = "MC";
 		/*const std::string shadingMethod = "LAMBERTIAN";
@@ -114,9 +114,12 @@ public:
 			Vec3 c = floatBuffer[i];
 
 			// Normalize with max value for better color gamut
-			if (maxVal > 0) {
+			/*if (maxVal > 0) {
 				c = c / maxVal;
-			}
+			}*/
+			
+			Vec3 temp = c + Vec3(1.0, 1.0, 1.0);
+			c = c / temp;
 
 			// Gamma correction with sqrt for gamma 2.0
 			c = Vec3(std::sqrt(c.x), std::sqrt(c.y), std::sqrt(c.z));

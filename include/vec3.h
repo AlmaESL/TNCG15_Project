@@ -32,6 +32,10 @@ struct Vec3 {
 		return Vec3(x / d, y / d, z / d);
 	}
 
+	Vec3 operator/ (Vec3& v) const {
+		return Vec3(x / v.x, y / v.y, z / v.z);
+	}
+
 	// Comparison operator
 	bool operator== (const Vec3& v) const {
 		return (x == v.x && y == v.y && z == v.z);

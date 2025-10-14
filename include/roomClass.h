@@ -26,8 +26,8 @@ public:
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
 	Vec3 lightColor = Vec3(1, 1, 1);
-	double lightIntensity = 400.0;
-	double ambient = 0.5;
+	double lightIntensity = 15.0;
+	double ambient = 0.1;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
 	// Constructor adds the room cube and a camera
@@ -59,12 +59,13 @@ public:
 		ceilingLight->addTriangle(Triangle(lightV0, lightV3, lightV2, Vec3(1.0, 0.95, 1.0)));
 		ceilingLight->setMat("EMISSIVE");
 		addTriObj(ceilingLight);
+		addLightSources(ceilingLight);
 
 		// Floor - White
 		auto floor = std::make_shared<TriObj>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
-		floor->setMat("DIFFUSE");
+		floor->setMat("MIRROR");
 		addTriObj(floor);
 
 		// The wall behind the camera
@@ -103,9 +104,9 @@ public:
 		addTriObj(ceiling);
 
 		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(3.0, 2.0, 1.7);
+		Vec3 sphereCenterPoint(3.0, 2.0, 0.6);
 		Vec3 sphereColor(0.6, 0.6, 1.0);
-		double sphereRadius = 0.9;
+		double sphereRadius = 0.4;
 		std::string sphereMat = "DIFFUSE";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
@@ -118,7 +119,7 @@ public:
 		auto cube = std::make_shared<TriObj>();
 		cube->createCube(cubeCenterPoint, cubeSideLenghts, cubeColour);
 		cube->setMat(cubeMat);
-		addTriObj(cube);
+	/*	addTriObj(cube);*/
 	}
 
 
