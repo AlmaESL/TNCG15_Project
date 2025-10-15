@@ -25,8 +25,8 @@ public:
 
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
-	Vec3 lightColor = Vec3(1, 1, 1);
-	double lightIntensity = 15.0;
+	Vec3 lightColor = Vec3(0.9, 0.9, 0.9);
+	double lightIntensity = 30.0;
 	double ambient = 0.1;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
@@ -65,7 +65,7 @@ public:
 		auto floor = std::make_shared<TriObj>();
 		floor->addTriangle(Triangle(v0, v1, v2, Vec3(0.8, 0.8, 0.8)));
 		floor->addTriangle(Triangle(v0, v2, v3, Vec3(0.8, 0.8, 0.8)));
-		floor->setMat("MIRROR");
+		floor->setMat("DIFFUSE");
 		addTriObj(floor);
 
 		// The wall behind the camera
@@ -77,9 +77,9 @@ public:
 
 		// Back wall - green
 		auto rightWall = std::make_shared<TriObj>();
-		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0.2, 0.8, 0.2)));
-		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0.2, 0.8, 0.2)));
-		rightWall->setMat("DIFFUSE");
+		rightWall->addTriangle(Triangle(v1, v5, v6, Vec3(0.8, 0.8, 0.8)));
+		rightWall->addTriangle(Triangle(v1, v6, v2, Vec3(0.8, 0.8, 0.8)));
+		rightWall->setMat("MIRROR");
 		addTriObj(rightWall);
 
 		// Left wall - blue
@@ -96,7 +96,7 @@ public:
 		frontWall->setMat("DIFFUSE");
 		addTriObj(frontWall);
 
-		// Ceiling - white
+		// Ceiling - white (red)
 		auto ceiling = std::make_shared<TriObj>();
 		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.3, 0.3)));
 		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.3, 0.3)));
@@ -104,10 +104,10 @@ public:
 		addTriObj(ceiling);
 
 		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(3.0, 2.0, 0.6);
-		Vec3 sphereColor(0.6, 0.6, 1.0);
-		double sphereRadius = 0.4;
-		std::string sphereMat = "DIFFUSE";
+		Vec3 sphereCenterPoint(2.5, 2.5, 1.8);
+		Vec3 sphereColor(0.8, 0.8, 0.8);
+		double sphereRadius = 0.45;
+		std::string sphereMat = "MIRROR";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
 
@@ -119,7 +119,7 @@ public:
 		auto cube = std::make_shared<TriObj>();
 		cube->createCube(cubeCenterPoint, cubeSideLenghts, cubeColour);
 		cube->setMat(cubeMat);
-	/*	addTriObj(cube);*/
+		addTriObj(cube);
 	}
 
 

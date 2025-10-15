@@ -3,6 +3,7 @@
 #include"roomClass.h"
 #include "vec3.h"
 #include "ray.h"
+#include <random>
 
 class Tracer {
 public:
@@ -70,63 +71,59 @@ public:
 		}
 
 		// Sphere Fresnel reflection + refraction (only for transparent materials)
-		if (hitType == "SPHERE" && hitMaterial == "GLASS" && (depth < maxDepth)) {
+		if (hitType == "SPHERE" && hitMaterial == "GLASS" && depth < maxDepth) {
 
 			// Refraction index for glass is [1.5,1.9]
-			double refrIdx = 1.9;
-
-			// Determine if the ray is inside or outside the surface
-			bool frontFace = ray.direction.dotProduct(bestNormal) < 0.0;
+			double refrIdx = 1.5;
 
 			// Intitalize normal n and eta ratio (refrIdx1 / refrIdx2 for snell's law)
-			double etaRatio;
-			Vec3 n;
-
-			// If the ray is outside the surface, eta is air / material refrIdx
-			if (frontFace) {
-				etaRatio = 1.0 / refrIdx;
-				n = bestNormal;
-			}
-			// If the ray is inside the surface, eta is material refrIdx / air
-			else {
-				etaRatio = refrIdx / 1.0;
-				n = bestNormal * (-1.0);
-			}
-
-			// Use the chosen normal and clamp cosTheta to [0,1]
-			double cosTheta = -1.0 * ray.direction.dotProduct(n);
-			cosTheta = std::max(0.0, std::min(1.0, cosTheta));
+			bool frontFace = ray.direction.dotProduct(bestNormal) < 0.0;
+			Vec3 n = frontFace ? bestNormal : bestNormal * -1.0;
+			double etaRatio = frontFace ? (1.0 / refrIdx) : (refrIdx / 1.0);
+			double cosTheta = std::max(0.0, std::min(1.0, -ray.direction.dotProduct(n)));
 
 			// Schlick refelectance to get the reflection coefficent 
 			double R = schlickReflectance(cosTheta, refrIdx);
 
 			// Randomly choose reflection or refraction using Fresnel R
-			double rnd = (double)std::rand() / RAND_MAX;
+			static thread_local std::mt19937 gen(std::random_device{}());
+			std::uniform_real_distribution<double> dis(0.0, 1.0);
+			double rnd = dis(gen);
+
+			Vec3 nextColor(0.0);
 
 			// Choose reflection if random num smaller than R
 			if (rnd < R) {
-
-				// Reflect ray direction around normal
-				Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
-				Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
-				Ray reflectRay = Ray(reflectOrigin, reflectDir);
-				return trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod);
+				// Reflect
+				Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
+				Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
+				trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+				hitColor = nextColor;  // no weighting needed, reflection already sampled with prob R
 			}
 			// Choose refraction if random num larger than R
 			else {
+
 				Vec3 refractDir = refractRay(ray.direction, n, etaRatio);
-				// If total internal reflection, fall back to reflection
-				if (refractDir.getLength() <= 0.0) {
-					Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
-					Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
-					Ray reflectRay = Ray(reflectOrigin, reflectDir);
-					return trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod);
+
+				if (refractDir.getLength() == 0.0) {
+					// Total internal reflection fallback
+					Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
+					Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
+					trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+					hitColor = nextColor;
 				}
-				Vec3 refractOrigin = hitPoint + (refractDir * 1e-4);
-				Ray refrRay = Ray(refractOrigin, refractDir.normalize());
-				return trace(refrRay, scene, hitColor, depth + 1, maxDepth, shadingMethod);
+				// If there's not total internal reflection we do refraction too
+				else {
+					Ray refrRay(hitPoint + refractDir * 1e-4, refractDir.normalize());
+					trace(refrRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+
+					// Apply tinting
+					hitColor = nextColor * bestColor;
+				}
 			}
+			return true;
 		}
+
 
 		// Mirror reflection with triangle object
 		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
@@ -184,6 +181,8 @@ public:
 			// Sample new ray direction using CDF hemisphere sampling, only 1 child ray per surface interaction
 			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
 
+			Vec3 totalColor(0.0);
+
 			// Check all the rays from sampler
 			for (size_t i = 0; i < sampler.rays.size(); ++i) {
 
@@ -228,7 +227,7 @@ public:
 
 						for (const auto& obj : scene.objs) {
 							// Transparent materials don't occlude
-							if (obj->isTransparent()) break;
+							if (obj->isTransparent()) continue;
 							double t3; Vec3 n3, c3;
 							if (obj->intersect(shadowRay, t3, n3, c3) && t3 > 1e-6 && t3 < tLight) {
 								occluded = true;
@@ -238,7 +237,7 @@ public:
 
 						if (!occluded) {
 							for (const auto& s : scene.spheres) {
-								if (s->isTransparent()) break;
+								if (s->isTransparent()) continue;
 								double ts = s->RaySphereIntersection(shadowRay);
 								if (ts > 1e-6 && ts < tLight) {
 									occluded = true;
@@ -264,7 +263,7 @@ public:
 				}
 
 				// Intitialize incoming color
-				Vec3 incoming;
+				Vec3 incoming(0.0);
 
 				// Recursively trace for all rays
 				bool hitSomething = trace(sampler.rays[i], scene, incoming, depth + 1, maxDepth, shadingMethod);
@@ -293,7 +292,8 @@ public:
 					// Ray termination = setting hit color to direct light only
 					if (urnif(rrGen) >= survivalProb) {
 						hitColor = directLighting;
-						return true;
+						totalColor += directLighting;
+						continue; 
 					}
 				}
 
@@ -302,10 +302,12 @@ public:
 				if (depth >= (rrDepth - 1) && survivalProb > 0.0)
 					indirectLighting = indirectLighting / survivalProb;
 
+
 				// Combine direcr and indirect light contributions
-				hitColor = directLighting + indirectLighting;
-				return true;
+				totalColor += directLighting + indirectLighting;
 			}
+			hitColor = totalColor / double(sampler.rays.size());
+			return true;
 		}
 		hitColor = scene.backgroundColor;
 		return false;
@@ -349,7 +351,7 @@ public:
 	double schlickReflectance(double cosTheta, double refrIdx) {
 
 		// Compute the reflectance at normal incidence
-		double r0 = pow((1 - refrIdx) / (1 + refrIdx), 2);
+		double r0 = pow((refrIdx - 1) / (refrIdx + 1), 2);
 
 		// Approximate reflectance for all angles using Schlick's approximation
 		return r0 + (1 - r0) * pow((1 - cosTheta), 5);
