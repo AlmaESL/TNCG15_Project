@@ -151,6 +151,7 @@ public:
 
 				// Lambertian relection factor
 				double diff = std::max(0.0, bestNormal.dotProduct(lightDir));
+
 				// Compute squared distance from light source to intersection surface point - squared distance since light
 				// intesnity decreases by squared distance
 				double distance2 = lightVec.dotProduct(lightVec);
