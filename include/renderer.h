@@ -114,12 +114,12 @@ public:
 			Vec3 c = floatBuffer[i];
 
 			// Normalize with max value for better color gamut
-			/*if (maxVal > 0) {
+			if (maxVal > 0) {
 				c = c / maxVal;
-			}*/
+			}
 			
-			Vec3 temp = c + Vec3(1.0, 1.0, 1.0);
-			c = c / temp;
+			/*Vec3 temp = c + Vec3(1.0, 1.0, 1.0);
+			c = c / temp;*/
 
 			// Gamma correction with sqrt for gamma 2.0
 			c = Vec3(std::sqrt(c.x), std::sqrt(c.y), std::sqrt(c.z));

@@ -27,6 +27,7 @@ public:
 	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
 	Vec3 lightColor = Vec3(0.9, 0.9, 0.9);
 	double lightIntensity = 30.0;
+	/*double lightIntensity = 400.0;*/
 	double ambient = 0.1;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
@@ -107,7 +108,7 @@ public:
 		Vec3 sphereCenterPoint(2.0, 2.5, 1.8);
 		Vec3 sphereColor(0.8, 0.8, 0.8);
 		double sphereRadius = 0.45;
-		std::string sphereMat = "MIRROR";
+		std::string sphereMat = "DIFFUSE";
 		auto sphere = std::make_shared<Sphere>(sphereCenterPoint, sphereRadius, sphereColor, sphereMat);
 		addSphere(sphere);
 
