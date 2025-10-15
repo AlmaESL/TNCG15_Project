@@ -104,7 +104,7 @@ public:
 		addTriObj(ceiling);
 
 		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(2.5, 2.5, 1.8);
+		Vec3 sphereCenterPoint(2.0, 2.5, 1.8);
 		Vec3 sphereColor(0.8, 0.8, 0.8);
 		double sphereRadius = 0.45;
 		std::string sphereMat = "MIRROR";
