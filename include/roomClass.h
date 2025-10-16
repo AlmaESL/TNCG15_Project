@@ -26,7 +26,7 @@ public:
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
 	Vec3 lightColor = Vec3(0.9, 0.9, 0.9);
-	double lightIntensity = 30.0;
+	double lightIntensity = 10.0;
 	/*double lightIntensity = 400.0;*/
 	double ambient = 0.1;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
@@ -71,8 +71,8 @@ public:
 
 		// The wall behind the camera
 		auto leftWall = std::make_shared<TriObj>();
-		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0.8, 0.8, 0.8)));
-		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0.8, 0.8, 0.8)));
+		leftWall->addTriangle(Triangle(v0, v3, v7, Vec3(0.8, 0.2, 0.2)));
+		leftWall->addTriangle(Triangle(v0, v7, v4, Vec3(0.8, 0.2, 0.2)));
 		leftWall->setMat("DIFFUSE");
 		addTriObj(leftWall);
 
@@ -99,13 +99,15 @@ public:
 
 		// Ceiling - white (red)
 		auto ceiling = std::make_shared<TriObj>();
-		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.3, 0.3)));
-		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.3, 0.3)));
+		/*ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.3, 0.3)));
+		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.3, 0.3)));*/
+		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.9, 0.9)));
+		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.9, 0.9)));
 		ceiling->setMat("DIFFUSE");
 		addTriObj(ceiling);
 
 		// Add a sphere to the scene
-		Vec3 sphereCenterPoint(2.0, 2.5, 1.8);
+		Vec3 sphereCenterPoint(3.0, 2.5, 1.4);
 		Vec3 sphereColor(0.8, 0.8, 0.8);
 		double sphereRadius = 0.45;
 		std::string sphereMat = "MIRROR";

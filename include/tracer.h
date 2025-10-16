@@ -71,7 +71,7 @@ public:
 		}
 
 		// Sphere Fresnel reflection + refraction (only for transparent materials)
-		if (hitType == "SPHERE" && hitMaterial == "GLASS" && depth < maxDepth) {
+		if (hitType == "SPHERE" && hitMaterial == "GLASS") {
 
 			// Refraction index for glass is [1.5,1.9]
 			double refrIdx = 1.5;
