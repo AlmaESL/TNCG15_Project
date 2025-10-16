@@ -63,7 +63,7 @@ public:
 		}
 
 		// Sphere perfect mirror material
-		if (hitType == "SPHERE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
+		if (hitType == "SPHERE" && hitMaterial == "MIRROR") {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
@@ -126,7 +126,7 @@ public:
 
 
 		// Mirror reflection with triangle object
-		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR" && (depth < maxDepth)) {
+		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR" ) {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
