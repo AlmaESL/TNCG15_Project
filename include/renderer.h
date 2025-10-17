@@ -48,8 +48,8 @@ public:
 		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
 		const std::string shadingMethod = "MC";
-		/*const std::string shadingMethod = "LAMBERTIAN";
-		const std::string shadingMethod = "FLAT";*/
+		//const std::string shadingMethod = "LAMBERTIAN";
+		/*const std::string shadingMethod = "FLAT";*/
 
 		// Iterate all threads
 		for (unsigned int threadIndex = 0; threadIndex < numThreads; ++threadIndex) {
