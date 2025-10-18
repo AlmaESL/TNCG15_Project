@@ -29,7 +29,7 @@ public:
 	/*Vec3 lightPos = Vec3(4, 2, 10);*/
 	Vec3 lightPos = Vec3(2, 2, 4 - distToRoofOffset);
 	Vec3 lightColor = Vec3(0.9, 0.9, 0.9);
-	double lightIntensity = 5.0;
+	double lightIntensity = 3.0;
 	/*double lightIntensity = 400.0;*/
 	double ambient = 0.01;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
@@ -238,7 +238,7 @@ public:
 		addSphere(diffuseSphere);
 
 		// Mirror cube in right corner
-		Vec3 mirrorCubeCenter(3.0, 3.35, 0.3); 
+		Vec3 mirrorCubeCenter(3.2, 3.35, 0.3); 
 		double cubeSideLength = 0.65;
 		Vec3 cubeColor(0.9, 0.9, 0.9);
 		std::string cubeMat2 = "MIRROR";
@@ -270,10 +270,10 @@ public:
 
 		// Tetrahedron in front of mirror cube
 		auto smallTetra = std::make_shared<TriObj>();
-		Vec3 t00(2.6-0.6, 3.9-0.5, 0.2);
-		Vec3 t11(2.9-0.6, 3.9-0.5, 0.2);
-		Vec3 t22(2.75-0.6, 3.7-0.5, 0.2);
-		Vec3 t33(2.75-0.6, 3.83-0.5, 0.85);;
+		Vec3 t00(2.6-0.45, 3.9-0.5, 0.2);
+		Vec3 t11(2.9-0.45, 3.9-0.5, 0.2);
+		Vec3 t22(2.75-0.45, 3.7-0.5, 0.2);
+		Vec3 t33(2.75-0.45, 3.83-0.5, 0.85);;
 
 		Vec3 tetraColor2(0.3, 0.9, 0.8); // Turquoise 
 		smallTetra->createTetra(t00, t11, t22, t33, tetraColor2);
