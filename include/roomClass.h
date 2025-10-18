@@ -31,7 +31,7 @@ public:
 	Vec3 lightColor = Vec3(0.9, 0.9, 0.9);
 	double lightIntensity = 5.0;
 	/*double lightIntensity = 400.0;*/
-	double ambient = 0.1;
+	double ambient = 0.01;
 	Vec3 backgroundColor = Vec3(0.05, 0.05, 0.05);
 
 	// Constructor adds the room cube and a camera
@@ -104,8 +104,8 @@ public:
 		auto ceiling = std::make_shared<TriObj>();
 		/*	ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.3, 0.3)));
 			ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.3, 0.3)));*/
-		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.9, 0.9, 0.9)));
-		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.9, 0.9, 0.9)));
+		ceiling->addTriangle(Triangle(v4, v7, v6, Vec3(0.75, 0.75, 0.75)));
+		ceiling->addTriangle(Triangle(v4, v6, v5, Vec3(0.75, 0.75, 0.75)));
 		ceiling->setMat("DIFFUSE");
 		addTriObj(ceiling);
 
@@ -183,8 +183,8 @@ public:
 		tetra->setMat("GLASS");
 		addTriObj(tetra);
 
-		// Sphere balancing on top
-		double sphereRadius = 0.6;
+		// Sphere balancing on top of big tetrahedron
+		double sphereRadius = 0.75;
 		Vec3 sphereCenter(t3.x, t3.y, t3.z + sphereRadius);
 		Vec3 sphereColor(0.9, 0.9, 0.9);
 		std::string sphereMat = "MIRROR";
@@ -199,9 +199,10 @@ public:
 
 		// Cluster of 3 spheres in left corner
 		double leftSphereRadius = 0.2;
-		double zOffset = 0.3;  // hover slightly above floor
+		// Spheres' placement above floor
+		double zOffset = 0.3;  
 
-		// Cluster center
+		// Cluster center (center sphere's center)
 		double baseX = 2.55;
 		double baseY = 1.25;
 		double spacing = 0.45;
@@ -237,8 +238,8 @@ public:
 		addSphere(diffuseSphere);
 
 		// Mirror cube in right corner
-		Vec3 mirrorCubeCenter(3.4, 3.2, 0.3); 
-		double cubeSideLength = 0.75;
+		Vec3 mirrorCubeCenter(3.0, 3.35, 0.3); 
+		double cubeSideLength = 0.65;
 		Vec3 cubeColor(0.9, 0.9, 0.9);
 		std::string cubeMat2 = "MIRROR";
 
@@ -269,10 +270,10 @@ public:
 
 		// Tetrahedron in front of mirror cube
 		auto smallTetra = std::make_shared<TriObj>();
-		Vec3 t00(2.6, 3.9-0.45, 0.25);
-		Vec3 t11(2.9, 3.9-0.45, 0.25);
-		Vec3 t22(2.75, 3.7-0.45, 0.25);
-		Vec3 t33(2.75, 3.83-0.45, 0.95);;
+		Vec3 t00(2.6-0.6, 3.9-0.5, 0.2);
+		Vec3 t11(2.9-0.6, 3.9-0.5, 0.2);
+		Vec3 t22(2.75-0.6, 3.7-0.5, 0.2);
+		Vec3 t33(2.75-0.6, 3.83-0.5, 0.85);;
 
 		Vec3 tetraColor2(0.3, 0.9, 0.8); // Turquoise 
 		smallTetra->createTetra(t00, t11, t22, t33, tetraColor2);

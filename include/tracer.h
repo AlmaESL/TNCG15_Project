@@ -126,7 +126,7 @@ public:
 
 
 		// Mirror reflection with triangle object
-		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR" ) {
+		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR") {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
@@ -212,6 +212,7 @@ public:
 					// Sample the light directly, treating light as a point
 					if (tLight == std::numeric_limits<double>::infinity()) {
 						directLighting = bestColor * scene.ambient;
+						
 					}
 					else {
 						// Direction toward the light is the sampled ray's direction (already)
@@ -249,6 +250,7 @@ public:
 
 						if (occluded) {
 							directLighting = bestColor * scene.ambient;
+						
 						}
 						else {
 							// Lambertian term using NdotL and light intensity / squared distance
@@ -278,25 +280,25 @@ public:
 				double survivalProb = 1.0;
 
 				// Start Russian roulette after some depth to terminate low-contribution paths
-				if (depth >= (rrDepth - 1)) {
+				/*if (depth >= (rrDepth - 1)) {*/
 
 					// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
-					double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
+				double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
 
-					// Clamp survival probability to avoid too many terminated paths
-					survivalProb = std::min(0.95, maxAlbedo);
+				// Clamp survival probability to avoid too many terminated paths
+				survivalProb = std::min(0.95, maxAlbedo);
 
-					// Generate random number and terminate if above survival probability
-					static thread_local std::mt19937 rrGen(std::random_device{}());
-					std::uniform_real_distribution<double> urnif(0.0, 1.0);
+				// Generate random number and terminate if above survival probability
+				static thread_local std::mt19937 rrGen(std::random_device{}());
+				std::uniform_real_distribution<double> urnif(0.0, 1.0);
 
-					// Ray termination = setting hit color to direct light only
-					if (urnif(rrGen) >= survivalProb) {
-						hitColor = directLighting;
-						totalColor += directLighting;
-						continue; 
-					}
+				// Ray termination = setting hit color to direct light only
+				if (urnif(rrGen) >= survivalProb) {
+					hitColor = directLighting;
+					totalColor += directLighting;
+					continue;
 				}
+				// }
 
 				// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
 				Vec3 indirectLighting = albedo * incoming;
@@ -308,9 +310,19 @@ public:
 				totalColor += directLighting + indirectLighting;
 			}
 			hitColor = totalColor / double(sampler.rays.size());
+
+			hitColor.x = std::min(1.0, std::max(0.0, hitColor.x));
+			hitColor.y = std::min(1.0, std::max(0.0, hitColor.y));
+			hitColor.z = std::min(1.0, std::max(0.0, hitColor.z));
+
 			return true;
 		}
 		hitColor = scene.backgroundColor;
+
+		hitColor.x = std::min(1.0, std::max(0.0, hitColor.x));
+		hitColor.y = std::min(1.0, std::max(0.0, hitColor.y));
+		hitColor.z = std::min(1.0, std::max(0.0, hitColor.z));
+
 		return false;
 	}
 
