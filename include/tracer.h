@@ -11,11 +11,14 @@ public:
 		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {
 	}
 
-	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor, int depth, const int& maxDepth, const std::string& shadingMethod) {
+	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor, int depth, const int& maxDepth, const std::string& shadingMethod, int& raySegments) {
 		// Ray includes ray origin and direction.
 		// Scene includes all objects (speheres, planes, cubes, tetrahedrons),
 		// light position, light color, light intensity, ambient color, and background color.
 		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
+
+		// For statistics
+		raySegments += 1;
 
 		// Test needed for Whitted ray termination
 		if (depth >= maxDepth) {
@@ -67,7 +70,7 @@ public:
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
-			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
+			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod, raySegments);
 		}
 
 		// Sphere Fresnel reflection + refraction (only for transparent materials)
@@ -97,7 +100,7 @@ public:
 				// Reflect
 				Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
 				Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
-				trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+				trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod, raySegments);
 				hitColor = nextColor;  // no weighting needed, reflection already sampled with prob R
 			}
 			// Choose refraction if random num larger than R
@@ -109,13 +112,13 @@ public:
 					// Total internal reflection fallback
 					Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
 					Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
-					trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+					trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod, raySegments);
 					hitColor = nextColor;
 				}
 				// If there's not total internal reflection we do refraction too
 				else {
 					Ray refrRay(hitPoint + refractDir * 1e-4, refractDir.normalize());
-					trace(refrRay, scene, nextColor, depth + 1, maxDepth, shadingMethod);
+					trace(refrRay, scene, nextColor, depth + 1, maxDepth, shadingMethod, raySegments);
 
 					// Apply tinting
 					hitColor = nextColor * bestColor;
@@ -130,7 +133,7 @@ public:
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
 			Ray reflectRay = Ray(reflectOrigin, reflectDir);
-			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod);
+			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod, raySegments);
 		}
 
 		/// Flat shading
@@ -269,7 +272,7 @@ public:
 				Vec3 incoming(0.0);
 
 				// Recursively trace for all rays
-				bool hitSomething = trace(sampler.rays[i], scene, incoming, depth + 1, maxDepth, shadingMethod);
+				bool hitSomething = trace(sampler.rays[i], scene, incoming, depth + 1, maxDepth, shadingMethod, raySegments);
 
 				// If no hit, incoming color is background color
 				if (!hitSomething) {

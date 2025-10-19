@@ -19,6 +19,8 @@ public:
 
 		// Max color value for entire image, used for tone mapping
 		double maxVal = 0.0;
+		int numberOfRays = 0;
+		int raySegments = 0;
 
 		// Buffer for floating point color values before tone mapping
 		std::vector<Vec3> floatBuffer(width * height);
@@ -44,7 +46,7 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 512;
+		const int spp = 8;
 		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
 		const std::string shadingMethod = "MC";
@@ -76,11 +78,13 @@ public:
 
 						// Generate spp MC rays per pixel
 						auto pixelRays = camera.generateRandomViewRays(x, y, width, height, spp);
+						numberOfRays += 1;
+						raySegments += 1;
 
 						for (const Ray& ray : pixelRays) {
 
 							Vec3 sampleColor;
-							tracer.trace(ray, scene, sampleColor, 0, maxDepth, shadingMethod);
+							tracer.trace(ray, scene, sampleColor, 0, maxDepth, shadingMethod, raySegments);
 							accumulatedColor = accumulatedColor + sampleColor;
 
 						}
@@ -129,6 +133,14 @@ public:
 			frameBuffer[3 * i + 1] = (unsigned char)(std::min(255.0, c.y * 255));
 			frameBuffer[3 * i + 2] = (unsigned char)(std::min(255.0, c.z * 255));
 		}
+
+		// Number of rays
+		std::cout << "\nStatistics \n";
+		std::cout << "================================\n";
+		std::cout << "Image width: " << width << "\n";
+		std::cout << "Image height: " << height << "\n";
+		std::cout << "Number of primary rays: " << numberOfRays << "\n";
+		std::cout << "Number of ray segments: " << raySegments << "\n";
 
 		// Write the image to file
 		std::ofstream ofs(filename, std::ios::binary);

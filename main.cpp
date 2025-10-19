@@ -30,7 +30,9 @@ int main() {
 
 	std::cout <<"Rendering time: " << ms_int.count() << "ms\n";
 
-	std::cout << "Rendered to test.ppm\n";
+	std::cout << "================================\n";
+
+	std::cout << "\nRendered to test.ppm\n";
 	return 0;
 
 }
