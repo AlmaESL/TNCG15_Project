@@ -78,10 +78,10 @@ public:
 
 						// Generate spp MC rays per pixel
 						auto pixelRays = camera.generateRandomViewRays(x, y, width, height, spp);
-						numberOfRays += 1;
-						raySegments += 1;
 
 						for (const Ray& ray : pixelRays) {
+							numberOfRays += 1;
+							raySegments += 1;
 
 							Vec3 sampleColor;
 							tracer.trace(ray, scene, sampleColor, 0, maxDepth, shadingMethod, raySegments);
