@@ -46,7 +46,7 @@ public:
 		std::vector<double> perThreadMax(numThreads, 0.0);
 
 		// Rendering parameters
-		const int spp = 8;
+		const int spp = 64;
 		const int maxDepth = 8; // Max number of bounced allowed for each ray, after that terminate with Russian Roulette
 
 		const std::string shadingMethod = "MC";
