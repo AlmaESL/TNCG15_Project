@@ -11,20 +11,12 @@ public:
 		bestColor(Vec3(0.0, 0.0, 0.0)), hitPoint(Vec3(0.0, 0.0, 0.0)), hitType(""), hitMaterial("") {
 	}
 
-	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor, int depth, const int& maxDepth, const std::string& shadingMethod, int& raySegments) {
-		// Ray includes ray origin and direction.
-		// Scene includes all objects (speheres, planes, cubes, tetrahedrons),
-		// light position, light color, light intensity, ambient color, and background color.
-		// depth dictates how many bounces a ray has done, and maxDepth dictates how many bounces are allowed
-
+	bool trace(const Ray& ray, const Scene& scene, Vec3& hitColor,
+		int depth, const int& maxDepth, const std::string& shadingMethod,
+		int& raySegments)
+	{
 		// For statistics
 		raySegments += 1;
-
-		// Test needed for Whitted ray termination
-		if (depth >= maxDepth) {
-			hitColor = bestColor;
-			return true;
-		}
 
 		// Initilize values related to ray intersection
 		bool hit = false;
@@ -47,7 +39,6 @@ public:
 		// Check intersection for all spheres 
 		for (const auto& sphere : scene.spheres) {
 			double tsphere = sphere->RaySphereIntersection(ray);
-
 			if (tsphere > 0.0 && tsphere < tClosest) {
 				tClosest = tsphere;
 				hitPoint = ray.origin + ray.direction * tsphere;
@@ -65,12 +56,42 @@ public:
 			return false;
 		}
 
+		// Initialize survival probability for Russian roulette
+		double survivalProb = 1.0;
+
+		// Start Russian roulette after some depth to terminate low-contribution paths
+		if (depth >= maxDepth) {
+
+			// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
+			double maxAlbedo = std::max({ bestColor.x, bestColor.y, bestColor.z });
+
+			// Clamp survival probability to avoid too many terminated paths
+			survivalProb = std::min(0.95, maxAlbedo);
+
+
+			// Generate random number and terminate if above survival probability
+			static thread_local std::mt19937 rrGen(std::random_device{}());
+			std::uniform_real_distribution<double> urnif(0.0, 1.0);
+
+			// Ray termination = setting hit color to direct light only
+			if (urnif(rrGen) >= survivalProb) {
+				hitColor = bestColor;
+				return true;
+			}
+		}
+
 		// Sphere perfect mirror material
 		if (hitType == "SPHERE" && hitMaterial == "MIRROR") {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
-			Ray reflectRay = Ray(reflectOrigin, reflectDir);
-			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod, raySegments);
+			Ray reflectRay(reflectOrigin, reflectDir);
+
+			bool reflected = trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod, raySegments);
+
+			if (reflected && survivalProb > 0.0)
+				hitColor = hitColor / survivalProb;
+
+			return true;
 		}
 
 		// Sphere Fresnel reflection + refraction (only for transparent materials)
@@ -85,7 +106,7 @@ public:
 			double etaRatio = frontFace ? (1.0 / refrIdx) : (refrIdx / 1.0);
 			double cosTheta = std::max(0.0, std::min(1.0, -ray.direction.dotProduct(n)));
 
-			// Schlick refelectance to get the reflection coefficent 
+			// Schlick refelectance to get the reflection coefficent
 			double R = schlickReflectance(cosTheta, refrIdx);
 
 			// Randomly choose reflection or refraction using Fresnel R
@@ -101,15 +122,13 @@ public:
 				Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
 				Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
 				trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod, raySegments);
-				hitColor = nextColor;  // no weighting needed, reflection already sampled with prob R
+				hitColor = nextColor;
 			}
 			// Choose refraction if random num larger than R
 			else {
-
 				Vec3 refractDir = refractRay(ray.direction, n, etaRatio);
-
+				// Total internal reflection fallback
 				if (refractDir.getLength() == 0.0) {
-					// Total internal reflection fallback
 					Vec3 reflectDir = (ray.direction - n * 2.0 * ray.direction.dotProduct(n)).normalize();
 					Ray reflectRay(hitPoint + reflectDir * 1e-4, reflectDir);
 					trace(reflectRay, scene, nextColor, depth + 1, maxDepth, shadingMethod, raySegments);
@@ -124,6 +143,8 @@ public:
 					hitColor = nextColor * bestColor;
 				}
 			}
+			if (survivalProb > 0.0)
+				hitColor = hitColor / survivalProb;
 			return true;
 		}
 
@@ -132,8 +153,11 @@ public:
 		if (hitType == "TRIANGLE" && hitMaterial == "MIRROR") {
 			Vec3 reflectDir = (ray.direction - (bestNormal * 2 * ray.direction.dotProduct(bestNormal))).normalize();
 			Vec3 reflectOrigin = hitPoint + (reflectDir * 1e-4);
-			Ray reflectRay = Ray(reflectOrigin, reflectDir);
-			return trace(reflectRay, scene, hitColor, (++depth), maxDepth, shadingMethod, raySegments);
+			Ray reflectRay(reflectOrigin, reflectDir);
+			bool reflected = trace(reflectRay, scene, hitColor, depth + 1, maxDepth, shadingMethod, raySegments);
+			if (reflected && survivalProb > 0.0)
+				hitColor = hitColor / survivalProb;
+			return true;
 		}
 
 		/// Flat shading
@@ -145,7 +169,7 @@ public:
 		/// Lambertian shading
 		if (shadingMethod == "LAMBERTIAN") {
 			if (shadowTest(scene)) {
-				hitColor = (bestColor * scene.ambient);
+				hitColor = bestColor * scene.ambient;
 				return true;
 			}
 			else {
@@ -168,7 +192,6 @@ public:
 			}
 		}
 
-
 		/// MC Tracing 
 		if (shadingMethod == "MC") {
 
@@ -177,10 +200,6 @@ public:
 
 			// For importance sampling of direct light, we do one direct shadow ray test
 			Vec3 directLighting(0.0);
-
-			// Indirect lighting uses hemisphere cosine-weighted sample --> this has to be same as maxDepth in
-			// Renderer.h --> TODO: Fix this so we only have to change in one place, should only be to set this to max depth
-			const int rrDepth = maxDepth;
 
 			// Sample new ray direction using CDF hemisphere sampling, only 1 child ray per surface interaction
 			StocasticRayGeneration sampler(hitPoint + bestNormal * 1e-4, 1, bestNormal);
@@ -268,6 +287,7 @@ public:
 					}
 				}
 
+
 				// Intitialize incoming color
 				Vec3 incoming(0.0);
 
@@ -275,59 +295,31 @@ public:
 				bool hitSomething = trace(sampler.rays[i], scene, incoming, depth + 1, maxDepth, shadingMethod, raySegments);
 
 				// If no hit, incoming color is background color
-				if (!hitSomething) {
+				if (!hitSomething)
 					incoming = scene.backgroundColor;
-				}
-
-				// Initialize survival probability for Russian roulette
-				double survivalProb = 1.0;
-
-				// Start Russian roulette after some depth to terminate low-contribution paths
-				if (depth >= (rrDepth - 1)) {
-
-					// Pick survival based on the best hit color --> TODO: Test other russian roulette methods?
-					double maxAlbedo = std::max({ albedo.x, albedo.y, albedo.z });
-
-					// Clamp survival probability to avoid too many terminated paths
-					survivalProb = std::min(0.95, maxAlbedo);
-
-					// Generate random number and terminate if above survival probability
-					static thread_local std::mt19937 rrGen(std::random_device{}());
-					std::uniform_real_distribution<double> urnif(0.0, 1.0);
-
-					// Ray termination = setting hit color to direct light only
-					if (urnif(rrGen) >= survivalProb) {
-						hitColor = directLighting;
-						totalColor += directLighting;
-						continue;
-					}
-				}
 
 				// For cosine-weighted sampling, cos/pdf cancels -> contribution = albedo * incoming
 				Vec3 indirectLighting = albedo * incoming;
-				if (depth >= (rrDepth - 1) && survivalProb > 0.0)
+				if (depth >= maxDepth && survivalProb > 0.0)
 					indirectLighting = indirectLighting / survivalProb;
 
-
 				// Combine direcr and indirect light contributions
-				totalColor += directLighting + indirectLighting;
+				totalColor += indirectLighting;
 			}
+
 			hitColor = totalColor / double(sampler.rays.size());
 
-			hitColor.x = std::min(1.0, std::max(0.0, hitColor.x));
-			hitColor.y = std::min(1.0, std::max(0.0, hitColor.y));
-			hitColor.z = std::min(1.0, std::max(0.0, hitColor.z));
+			hitColor.x = std::clamp(hitColor.x, 0.0, 1.0);
+			hitColor.y = std::clamp(hitColor.y, 0.0, 1.0);
+			hitColor.z = std::clamp(hitColor.z, 0.0, 1.0);
 
 			return true;
 		}
+
 		hitColor = scene.backgroundColor;
-
-		hitColor.x = std::min(1.0, std::max(0.0, hitColor.x));
-		hitColor.y = std::min(1.0, std::max(0.0, hitColor.y));
-		hitColor.z = std::min(1.0, std::max(0.0, hitColor.z));
-
 		return false;
 	}
+
 
 	// Test for shadow rays via occlusion
 	bool shadowTest(const Scene& scene) const {
